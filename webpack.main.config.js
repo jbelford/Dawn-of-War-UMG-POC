@@ -1,5 +1,8 @@
 module.exports = {
   entry: './src/main/main.ts',
+  resolve: {
+    extensions: ['.ts', '.json', '.js']
+  },
   module: {
     rules: [
       {
