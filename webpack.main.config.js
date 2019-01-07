@@ -1,16 +1,15 @@
-const path = require('path');
-
 module.exports = {
-  mode: 'development',
-  entry: './src/main.ts',
-  devtool: 'inline-source-map',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'main.bundle.js'
-  },
+  entry: './src/main/main.ts',
   module: {
     rules: [
-      { test: /\.tsx?$/, use: 'ts-loader' }
+      {
+        test: /\.tsx?$/, use: {
+          loader: 'ts-loader',
+          options: {
+            configFile: "tsconfig.json"
+          }
+        }
+      }
     ]
   }
 };
