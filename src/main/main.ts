@@ -36,6 +36,7 @@ const createWindow = async () => {
   ipcMain.on('Main#Quit', () => {
     if (mainWindow) mainWindow.close();
   });
+
 };
 
 // This method will be called when Electron has finished
