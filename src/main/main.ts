@@ -1,9 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+import * as path from 'path';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
   app.quit();
 }
+
+app.setPath('userData', app.getPath('userData').split(path.sep).slice(0, -1).join(path.sep) + `${path.sep}dow-umg`);
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

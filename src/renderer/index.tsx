@@ -7,12 +7,11 @@ import { Link, MemoryRouter, Route } from 'react-router-dom';
 import { Settings } from './components/settings';
 
 
-
 const Menu = () => {
   return <div>
     <h1>Dawn of War: Ultimate Matchup Generator</h1>
     <Link to='/game/new' className='btn'>New</Link>
-    <Link to='/game/load' className='btn'>Load</Link>
+    <button className='btn'>Load</button>
     <Link to='/settings' className='btn'>Settings</Link>
     <button className='btn' onClick={() => ipcRenderer.send('Main#Quit')}>Quit</button>
   </div>;
@@ -26,7 +25,6 @@ class App extends React.Component<any, any> {
         <div>
           <Route path='/' exact component={Menu} />
           <Route path='/game/new' />
-          <Route path='/game/load' />
           <Route path='/settings' component={Settings} />
         </div>
       </MemoryRouter>

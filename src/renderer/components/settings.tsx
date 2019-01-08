@@ -1,30 +1,28 @@
 import { remote } from 'electron';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { Store, UserSettings } from '../../common/store';
 const { dialog } = remote;
 
-
-export class Settings extends React.Component<any, any> {
+export class Settings extends React.Component<any, SettingsState> {
 
   constructor(props: any) {
     super(props);
-    this.state = { dir: '' };
+    this.state = { settings: Store.getSettings(), changed: false };
   }
-
 
   selectFolder = () => {
     const directories = dialog.showOpenDialog({ properties: ['openDirectory'] });
-    if (directories.length) this.setState({ dir: directories[0] });
+    if (directories.length && directories[0] !== this.state.settings.dir) {
+      const newSettings = { ...this.state.settings, dir: directories[0] };
+      this.setState({ settings: newSettings, changed: true });
+    }
   }
 
-  folderOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const dir = event.target.value;
-    this.setState({ dir: dir });
-  }
-
-  onSubmit = (event: React.FormEvent) => {
+  onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    return false;
+    Store.saveSettings(this.state.settings);
+    this.setState({ ...this.state, changed: false });
   }
 
   render() {
@@ -32,9 +30,9 @@ export class Settings extends React.Component<any, any> {
       <div>
         <h1>Settings</h1>
         <form onSubmit={this.onSubmit} >
-          Dawn of War Directory: <input type='text' name='dir' value={this.state.dir} onChange={this.folderOnChange} />
-          <button onClick={this.selectFolder}>📁</button>
-          <input type='submit' value='Save' />
+          Dawn of War Directory: <input type='text' name='dir' value={this.state.settings.dir} readOnly />
+          <button onClick={this.selectFolder} type='button'>📁</button>
+          {this.state.changed ? <input type='submit' value='Save Changes' /> : <input type='submit' value='Saved' disabled />}
         </form>
         <Link to='/' className='btn'>Go Back</Link>
       </div>
@@ -42,3 +40,8 @@ export class Settings extends React.Component<any, any> {
   }
 
 }
+
+type SettingsState = {
+  settings: UserSettings;
+  changed: boolean;
+};
