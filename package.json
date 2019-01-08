@@ -63,12 +63,14 @@
     "@types/react": "^16.7.18",
     "@types/react-dom": "^16.0.11",
     "@types/react-hot-loader": "4.1.0",
-    "bootstrap": "4.2.1",
+    "@types/reactstrap": "^6.4.4",
+    "bootstrap": "^4.2.1",
     "electron-squirrel-startup": "1.0.0",
     "react": "16.7.0",
     "react-dom": "16.7.0",
     "react-hot-loader": "4.6.3",
     "react-router-dom": "^4.3.1",
+    "reactstrap": "^7.0.2",
     "tslib": "1.4.0"
   },
   "devDependencies": {

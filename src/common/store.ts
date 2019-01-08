@@ -22,6 +22,9 @@ export namespace Store {
     const settingsPath = getSettingsPath();
     try {
       settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+      if (!validateSettings(settings)) {
+        settings = { dir: '' };
+      }
     } catch (e) {
       fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
     }
@@ -33,6 +36,9 @@ export namespace Store {
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2));
   }
 
+  export function validateSettings(settings: UserSettings) {
+    return fs.existsSync(path.join(settings.dir, 'W40k.exe'));
+  }
 }
 
 export type UserSettings = {

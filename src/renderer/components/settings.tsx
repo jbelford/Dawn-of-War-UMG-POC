@@ -1,6 +1,13 @@
 import { remote } from 'electron';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import Button from 'reactstrap/lib/Button';
+import Form from 'reactstrap/lib/Form';
+import FormGroup from 'reactstrap/lib/FormGroup';
+import Input from 'reactstrap/lib/Input';
+import InputGroup from 'reactstrap/lib/InputGroup';
+import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
+import Label from 'reactstrap/lib/Label';
 import { Store, UserSettings } from '../../common/store';
 const { dialog } = remote;
 
@@ -8,14 +15,17 @@ export class Settings extends React.Component<any, SettingsState> {
 
   constructor(props: any) {
     super(props);
-    this.state = { settings: Store.getSettings(), changed: false };
+    this.state = { settings: Store.getSettings(), changed: false, isValid: true };
   }
 
-  selectFolder = () => {
+  selectFolder = (e: React.MouseEvent) => {
+    e.preventDefault();
     const directories = dialog.showOpenDialog({ properties: ['openDirectory'] });
-    if (directories.length && directories[0] !== this.state.settings.dir) {
-      const newSettings = { ...this.state.settings, dir: directories[0] };
-      this.setState({ settings: newSettings, changed: true });
+    if (directories.length) {
+      if (directories[0] !== this.state.settings.dir) {
+        const newSettings = { ...this.state.settings, dir: directories[0] };
+        this.setState({ settings: newSettings, changed: true, isValid: Store.validateSettings(newSettings) });
+      }
     }
   }
 
@@ -27,13 +37,20 @@ export class Settings extends React.Component<any, SettingsState> {
 
   render() {
     return (
-      <div>
-        <h1>Settings</h1>
-        <form onSubmit={this.onSubmit} >
-          Dawn of War Directory: <input type='text' name='dir' value={this.state.settings.dir} readOnly />
-          <button onClick={this.selectFolder} type='button'>📁</button>
-          {this.state.changed ? <input type='submit' value='Save Changes' /> : <input type='submit' value='Saved' disabled />}
-        </form>
+      <div className='container'>
+        <h1 className='display-4'>Settings</h1>
+        <Form onSubmit={this.onSubmit}>
+          <FormGroup>
+            <Label>Dawn of War Directory :</Label>
+            <InputGroup>
+              <InputGroupAddon addonType='prepend'><Button onClick={this.selectFolder}>📁</Button></InputGroupAddon>
+              <Input placeholder='Select Directory...' value={this.state.settings.dir} readOnly
+                valid={this.state.isValid}
+                invalid={!this.state.isValid} />
+            </InputGroup>
+          </FormGroup>
+          <Button type='submit' disabled={!this.state.changed || !this.state.isValid}>{this.state.changed ? 'Save Changes' : 'Saved'}</Button>
+        </Form>
         <Link to='/' className='btn'>Go Back</Link>
       </div>
     );
@@ -44,4 +61,5 @@ export class Settings extends React.Component<any, SettingsState> {
 type SettingsState = {
   settings: UserSettings;
   changed: boolean;
+  isValid: boolean;
 };

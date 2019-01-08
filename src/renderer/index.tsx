@@ -4,14 +4,15 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
 import { Link, MemoryRouter, Route } from 'react-router-dom';
+import Button from 'reactstrap/lib/Button';
 import { Settings } from './components/settings';
 
 
 const Menu = () => {
-  return <div>
-    <h1>Dawn of War: Ultimate Matchup Generator</h1>
+  return <div className='container'>
+    <h1 className='display-4'>Dawn of War: Ultimate Matchup Generator</h1>
     <Link to='/game/new' className='btn'>New</Link>
-    <button className='btn'>Load</button>
+    <Button color=''>Load</Button>
     <Link to='/settings' className='btn'>Settings</Link>
     <button className='btn' onClick={() => ipcRenderer.send('Main#Quit')}>Quit</button>
   </div>;
