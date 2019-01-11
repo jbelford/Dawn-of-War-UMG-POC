@@ -1,6 +1,7 @@
 import * as electron from 'electron';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Campaign } from '../typings/campaign';
 
 export namespace Store {
 
@@ -8,13 +9,38 @@ export namespace Store {
     return electron.app || electron.remote.app;
   }
 
-  function getSettingsPath() {
+  function getUserDataPath() {
     const userDataPath = getApp().getPath('userData');
     if (!fs.existsSync(userDataPath)) {
       fs.mkdirSync(userDataPath);
     }
-    const settingsPath = path.join(userDataPath, 'settings.json');
-    return settingsPath;
+    return userDataPath;
+  }
+
+  function getSettingsPath() {
+    const userDataPath = getUserDataPath();
+    return path.join(userDataPath, 'settings.json');
+  }
+
+  function getCampaignsPath() {
+    const userDataPath = getUserDataPath();
+    const campaignsFolderPath = path.join(userDataPath, 'campaigns');
+    if (!fs.existsSync(campaignsFolderPath)) {
+      fs.mkdirSync(campaignsFolderPath);
+    }
+    return campaignsFolderPath;
+  }
+
+  export function getCampaigns(): Campaign[] {
+    return fs.readdirSync(getCampaignsPath())
+      .filter(file => file.match(/^cpn_.+\.json$/g))
+      .map(file => {
+        try {
+          return <Campaign>JSON.parse(fs.readFileSync(file, 'utf8'));
+        } catch (e) {
+          return null;
+        }
+      }).filter(file => !!file) as Campaign[];
   }
 
   export function getSettings(): UserSettings {

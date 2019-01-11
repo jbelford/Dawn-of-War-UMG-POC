@@ -8,7 +8,7 @@ import Input from 'reactstrap/lib/Input';
 import InputGroup from 'reactstrap/lib/InputGroup';
 import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
 import Label from 'reactstrap/lib/Label';
-import { Store, UserSettings } from '../../common/store';
+import { Store, UserSettings } from '../../main/store';
 const { dialog } = remote;
 
 export class Settings extends React.Component<any, SettingsState> {

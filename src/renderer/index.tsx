@@ -1,22 +1,13 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { ipcRenderer } from 'electron';
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { AppContainer } from 'react-hot-loader';
-import { Link, MemoryRouter, Route } from 'react-router-dom';
-import Button from 'reactstrap/lib/Button';
+import { MemoryRouter, Route } from 'react-router-dom';
+import { Editor } from './components/editor/editor';
+import { Menu } from './components/menu';
 import { Settings } from './components/settings';
+import './css/global.css';
 
-
-const Menu = () => {
-  return <div className='container'>
-    <h1 className='display-4'>Dawn of War: Ultimate Matchup Generator</h1>
-    <Link to='/game/new' className='btn'>New</Link>
-    <Button color=''>Load</Button>
-    <Link to='/settings' className='btn'>Settings</Link>
-    <button className='btn' onClick={() => ipcRenderer.send('Main#Quit')}>Quit</button>
-  </div>;
-};
 
 class App extends React.Component<any, any> {
 
@@ -25,7 +16,7 @@ class App extends React.Component<any, any> {
       <MemoryRouter>
         <div>
           <Route path='/' exact component={Menu} />
-          <Route path='/game/new' />
+          <Route path={['/editor/:campaign', '/editor']} component={Editor} />
           <Route path='/settings' component={Settings} />
         </div>
       </MemoryRouter>

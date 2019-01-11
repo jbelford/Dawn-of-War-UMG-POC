@@ -1,6 +1,6 @@
 module.exports = {
   resolve: {
-    extensions: ['.ts', '.tsx', '.css', '.html', '.json', '.js']
+    extensions: ['.ts', '.tsx', '.css', '.html', '.json', '.js', 'jpg']
   },
   module: {
     rules: [
@@ -12,6 +12,16 @@ module.exports = {
             configFile: "tsconfig.json"
           }
         }
+      },
+      {
+        test: /\.(png|jp(e*)g|svg)$/,
+        use: [{
+          loader: 'url-loader',
+          options: {
+            limit: 8000,
+            name: 'img/[hash]-[name].[ext]'
+          }
+        }]
       }
     ]
   }
