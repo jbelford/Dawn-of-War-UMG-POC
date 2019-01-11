@@ -34,22 +34,22 @@ export class Editor extends React.Component<any, { campaign: Campaign }> {
 
   render() {
     return <div className='container'>
-      <h3>Campaign Editor</h3>
+      <h1 className='display-3'>Campaign Editor</h1>
       <p>On this screen you can set up your own campaign.</p>
 
       <Form>
-        <FormGroup row>
+        <FormGroup>
           <Label>Campaign Title</Label>
           <Input type='text' placeholder='What is this campaign called...' value={this.state.campaign.name} />
         </FormGroup>
-        <FormGroup row>
+        <FormGroup>
           <Label>Description</Label>
           <Input type='textarea' placeholder='This is your opportunity to write about the story of this campaign'
             value={this.state.campaign.about} />
         </FormGroup>
-        <Card className='text-center row'>
-          <CardHeader tag='h4'>Participants</CardHeader>
-          <CardText className='lead'>
+        <Card>
+          <CardHeader tag='h4' className='text-center'>Participants</CardHeader>
+          <CardText className='lead text-center'>
             Here you can configure armies that are involved in this campaign.
             <br />Once configured here, you can reference them in later parts of the setup.
             <br />You can put whatever you want here.
