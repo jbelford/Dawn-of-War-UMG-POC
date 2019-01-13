@@ -39,7 +39,7 @@ export class Settings extends React.Component<any, SettingsState> {
     return (
       <div className='container'>
         <h1 className='display-4'>Settings</h1>
-        <Form onSubmit={this.onSubmit}>
+        <Form onSubmit={this.onSubmit} className='d-flex flex-column'>
           <FormGroup>
             <Label>Dawn of War Directory :</Label>
             <InputGroup>
@@ -49,9 +49,15 @@ export class Settings extends React.Component<any, SettingsState> {
                 invalid={!this.state.isValid} />
             </InputGroup>
           </FormGroup>
-          <Button type='submit' disabled={!this.state.changed || !this.state.isValid}>{this.state.changed ? 'Save Changes' : 'Saved'}</Button>
+          <div className='align-self-end'>
+            <Link to='/' className='btn btn-primary'>Go Back</Link>
+            <Button type='submit'
+              className='ml-2'
+              disabled={!this.state.changed || !this.state.isValid}>
+              {this.state.changed ? 'Save Changes' : 'Saved'}
+            </Button>
+          </div>
         </Form>
-        <Link to='/' className='btn'>Go Back</Link>
       </div>
     );
   }

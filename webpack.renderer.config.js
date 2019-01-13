@@ -1,6 +1,6 @@
 module.exports = {
   resolve: {
-    extensions: ['.ts', '.tsx', '.css', '.html', '.json', '.js', 'jpg']
+    extensions: ['.ts', '.tsx', '.css', '.html', '.json', '.js', '.jpg']
   },
   module: {
     rules: [
@@ -19,7 +19,7 @@ module.exports = {
           loader: 'url-loader',
           options: {
             limit: 8000,
-            name: 'img/[hash]-[name].[ext]'
+            name: 'img/[name].[ext]'
           }
         }]
       }

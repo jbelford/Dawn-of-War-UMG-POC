@@ -11,6 +11,10 @@ import './css/global.css';
 
 class App extends React.Component<any, any> {
 
+  constructor(props: any) {
+    super(props);
+  }
+
   render() {
     return (
       <MemoryRouter>

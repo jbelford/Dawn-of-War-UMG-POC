@@ -33,7 +33,7 @@ export class Menu extends React.Component<any, any> {
   render() {
     if (this.state.editorSelected) return <Redirect to={`/editor/${this.state.selectedCampaign}`} />;
 
-    return <div className='container' style={{ textAlign: 'center' }}>
+    return <div className='container flex' style={{ textAlign: 'center' }}>
       <h1 className='display-2'>Dawn of War</h1>
       <h1 className='display-4'>Ultimate Matchup Generator</h1>
       <Dropdown color='' options={['New', 'Load']} onSelect={this.selectedCampaign}>Campaign</Dropdown>
@@ -70,7 +70,7 @@ class Dropdown extends React.Component<DropdownProps, any> {
 
   render() {
     return <ButtonDropdown direction='down' isOpen={this.state.dropdownOpen} toggle={this.toggle}>
-      <DropdownToggle style={{ display: 'inherit' }} color={this.props.color}>
+      <DropdownToggle color={this.props.color} caret>
         {this.props.children}
       </DropdownToggle>
       <DropdownMenu>
