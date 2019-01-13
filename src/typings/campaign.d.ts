@@ -11,9 +11,9 @@ export type Campaign = {
 };
 
 type Team = {
+  id: number;
   name: string;
   about: string;
-  players: number[];
 };
 
 type Mission = {
@@ -21,12 +21,9 @@ type Mission = {
   map: Level;
   about: string;
   involved: {
-    teamIndex: number;
-    players: {
-      index: number;
-      spawn: number;
-      about: string;
-    }[];
+    index: number;
+    spawn: number;
+    about: string;
   }[];
   gameOptions: string[];
   gameRules: string[];
@@ -43,9 +40,11 @@ type LoseMission = {
 
 type Participant = {
   portrait?: string;
+  id: number;
   race: string;
   army: string;
   about: string;
+  team: number;
 };
 
 type Level = {

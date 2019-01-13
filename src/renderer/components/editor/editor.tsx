@@ -7,9 +7,10 @@ import Form from 'reactstrap/lib/Form';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
-import { Campaign } from '../../../typings/campaign';
+import { Campaign, Participant, Team } from '../../../typings/campaign';
 import { ParticipantTabs } from './participants';
-
+import { TeamTabs } from './teams';
+const spaceMarinePortrait = require('../../img/spacemarine.jpg');
 export class Editor extends React.Component<any, { campaign: Campaign, editorHeight: number }> {
 
   private headerRef: React.RefObject<HTMLDivElement>;
@@ -20,8 +21,14 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
       campaign: {
         name: '',
         about: '',
-        involved: [],
-        teams: [],
+        involved: [{
+          id: 0, portrait: spaceMarinePortrait,
+          race: '', army: '', about: '', team: 0
+        }, {
+          id: 1, portrait: spaceMarinePortrait,
+          race: '', army: '', about: '', team: 1
+        }],
+        teams: [{ id: 0, name: '', about: '' }, { id: 1, name: '', about: '' }],
         missions: [],
         gameOptions: [],
         gameRules: [],
@@ -53,33 +60,83 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
     }
   }
 
+  private campaignNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const campaign = this.state.campaign;
+    campaign.name = e.target.value;
+    this.setState({ ... this.state, campaign: campaign });
+  }
+
+  private descriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const campaign = this.state.campaign;
+    campaign.about = e.target.value;
+    this.setState({ ... this.state, campaign: campaign });
+  }
+
+  private teamsChange = (teams: Team[]) => {
+    const campaign = this.state.campaign;
+    campaign.teams = teams;
+    campaign.involved = this.state.campaign.involved
+      .map(participant => teams.every(team => team.id !== participant.team)
+        ? { ...participant, team: teams[0].id } : participant);
+
+    this.setState({ ... this.state, campaign: campaign });
+  }
+
+  private participantsChange = (participants: Participant[]) => {
+    const campaign = this.state.campaign;
+    campaign.involved = participants;
+    this.setState({ ... this.state, campaign: campaign });
+  }
+
   render() {
     return <div className='container'>
-      <div ref={this.headerRef} className='lead pl-2'>
+      <div ref={this.headerRef} className='lead text-center'>
         <h1 className='display-3'>Campaign Editor</h1>
         <p>On this screen you can set up your own campaign.</p>
       </div>
-      <Form className='overflow-auto p-2' style={{ height: this.state.editorHeight }}>
+      <Form className='overflow-auto pl-2 pr-2' style={{ height: this.state.editorHeight, paddingBottom: '200px' }}>
         <FormGroup>
           <Label>Campaign Title</Label>
-          <Input type='text' placeholder='What is this campaign called?' value={this.state.campaign.name} />
+          <Input type='text'
+            placeholder='What is this campaign called?'
+            value={this.state.campaign.name}
+            onChange={this.campaignNameChange} />
         </FormGroup>
         <FormGroup>
           <Label>Description</Label>
-          <Input type='textarea' placeholder='What is the story of this campaign? Talk about as much as you like.'
-            value={this.state.campaign.about} />
+          <Input type='textarea'
+            placeholder='What is the story of this campaign? Talk about as much as you like.'
+            value={this.state.campaign.about}
+            onChange={this.descriptionChange} />
         </FormGroup>
-        <Card>
-          <CardHeader tag='h4' className='text-center'>Participants</CardHeader>
-          <CardText className='lead text-center'>
-            Here you can configure armies that are involved in this campaign.
+        <FormGroup>
+          <Card>
+            <CardHeader tag='h4' className='text-center'>Participants</CardHeader>
+            <CardText className='lead text-center'>
+              Here you can configure armies that are involved in this campaign.
               <br />Once configured here, you can reference them in later parts of the setup.
-              <br />You can put whatever you want here.
             </CardText>
-          <CardBody className='p-0'>
-            <ParticipantTabs participants={this.state.campaign.involved} />
-          </CardBody>
-        </Card>
+            <CardBody className='p-0'>
+              <ParticipantTabs participants={this.state.campaign.involved}
+                teams={this.state.campaign.teams}
+                onChange={this.participantsChange} />
+            </CardBody>
+          </Card>
+        </FormGroup>
+        <FormGroup>
+          <Card>
+            <CardHeader tag='h4' className='text-center'>Teams</CardHeader>
+            <CardText className='lead text-center'>
+              Here you can name the parties involved and provide some details for teams as a whole.
+              <br />Once configured here, you can reference them in later parts of the setup.
+            </CardText>
+            <CardBody className='p-0'>
+              <TeamTabs teams={this.state.campaign.teams}
+                participants={this.state.campaign.involved}
+                onChange={this.teamsChange} />
+            </CardBody>
+          </Card>
+        </FormGroup>
       </Form>
     </div>;
   }

@@ -2,3 +2,7 @@
 ::-webkit-scrollbar {
   display: none;
 }
+
+.nav-link {
+  cursor: default;
+}
