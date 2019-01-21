@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { Campaign } from '../typings/campaign';
 
-export namespace Store {
+export namespace AppData {
 
   function getApp() {
     return electron.app || electron.remote.app;

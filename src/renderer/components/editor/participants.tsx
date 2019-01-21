@@ -41,7 +41,6 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
   private handleParticipantChange = (i: number, key: string, value: any) => {
     const participants = this.state.participants;
     participants[i][key] = value;
-    console.log(participants);
     this.setState({ ...this.state, participants: participants });
     this.emitUpdate();
   }
@@ -143,20 +142,20 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
                       value={participant.about} onChange={(e) => this.handleParticipantChange(i, 'about', e.target.value)}
                       disabled={participant.locked} />
                   </FormGroup>
+                  <div>
+                    <Button color={participant.locked ? 'dark' : 'primary'}
+                      onClick={() => this.toggleLock(i)}
+                      style={{ width: '75px' }}>
+                      {participant.locked ? 'Unlock' : 'Lock'}
+                    </Button>
+                    {this.state.participants.length > 2
+                      && <Button color='danger' className='ml-2 float-right'
+                        onClick={() => this.deleteParticipant()}
+                        style={{ width: '75px' }}
+                        disabled={participant.locked}>Delete</Button>}
+                  </div>
                 </Media>
               </Media>
-              <div className='align-self-end'>
-                <Button color={participant.locked ? 'dark' : 'primary'}
-                  onClick={() => this.toggleLock(i)}
-                  style={{ width: '75px' }}>
-                  {participant.locked ? 'Unlock' : 'Lock'}
-                </Button>
-                {this.state.participants.length > 2
-                  && <Button color='danger' className='ml-2'
-                    onClick={() => this.deleteParticipant()}
-                    style={{ width: '75px' }}
-                    disabled={participant.locked}>Delete</Button>}
-              </div>
             </Fade>
           </TabPane>
         ))}

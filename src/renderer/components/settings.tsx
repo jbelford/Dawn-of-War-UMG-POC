@@ -8,14 +8,14 @@ import Input from 'reactstrap/lib/Input';
 import InputGroup from 'reactstrap/lib/InputGroup';
 import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
 import Label from 'reactstrap/lib/Label';
-import { Store, UserSettings } from '../../main/store';
+import { AppData, UserSettings } from '../../main/appdata';
 const { dialog } = remote;
 
 export class Settings extends React.Component<any, SettingsState> {
 
   constructor(props: any) {
     super(props);
-    this.state = { settings: Store.getSettings(), changed: false, isValid: true };
+    this.state = { settings: AppData.getSettings(), changed: false, isValid: true };
   }
 
   selectFolder = (e: React.MouseEvent) => {
@@ -24,14 +24,14 @@ export class Settings extends React.Component<any, SettingsState> {
     if (directories.length) {
       if (directories[0] !== this.state.settings.dir) {
         const newSettings = { ...this.state.settings, dir: directories[0] };
-        this.setState({ settings: newSettings, changed: true, isValid: Store.validateSettings(newSettings) });
+        this.setState({ settings: newSettings, changed: true, isValid: AppData.validateSettings(newSettings) });
       }
     }
   }
 
   onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    Store.saveSettings(this.state.settings);
+    AppData.saveSettings(this.state.settings);
     this.setState({ ...this.state, changed: false });
   }
 

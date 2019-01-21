@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
+import Button from 'reactstrap/lib/Button';
 import Card from 'reactstrap/lib/Card';
 import CardBody from 'reactstrap/lib/CardBody';
 import CardHeader from 'reactstrap/lib/CardHeader';
@@ -11,7 +13,14 @@ import { Campaign, Participant, Team } from '../../../typings/campaign';
 import { ParticipantTabs } from './participants';
 import { TeamTabs } from './teams';
 const spaceMarinePortrait = require('../../img/spacemarine.jpg');
-export class Editor extends React.Component<any, { campaign: Campaign, editorHeight: number }> {
+
+type EditorState = {
+  campaign: Campaign,
+  editorHeight: number,
+  changed: boolean;
+  file?: string;
+};
+export class Editor extends React.Component<any, EditorState> {
 
   private headerRef: React.RefObject<HTMLDivElement>;
 
@@ -30,14 +39,15 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
         }],
         teams: [{ id: 0, name: '', about: '' }, { id: 1, name: '', about: '' }],
         missions: [],
-        gameOptions: [],
+        gameOptions: {},
         gameRules: [],
         customRules: '',
         loseRules: {
           ironman: false
         }
       },
-      editorHeight: 0
+      editorHeight: 0,
+      changed: false
     };
     this.headerRef = React.createRef();
   }
@@ -63,13 +73,13 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
   private campaignNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const campaign = this.state.campaign;
     campaign.name = e.target.value;
-    this.setState({ ... this.state, campaign: campaign });
+    this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
   private descriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const campaign = this.state.campaign;
     campaign.about = e.target.value;
-    this.setState({ ... this.state, campaign: campaign });
+    this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
   private teamsChange = (teams: Team[]) => {
@@ -79,20 +89,20 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
       .map(participant => teams.every(team => team.id !== participant.team)
         ? { ...participant, team: teams[0].id } : participant);
 
-    this.setState({ ... this.state, campaign: campaign });
+    this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
   private participantsChange = (participants: Participant[]) => {
     const campaign = this.state.campaign;
     campaign.involved = participants;
-    this.setState({ ... this.state, campaign: campaign });
+    this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
   render() {
     return <div className='container'>
       <div ref={this.headerRef} className='lead text-center'>
-        <h1 className='display-3'>Campaign Editor</h1>
-        <p>On this screen you can set up your own campaign.</p>
+        <h1 className='display-4'>Campaign Editor</h1>
+        <p>On this screen you can setup or edit a campaign.</p>
       </div>
       <Form className='overflow-auto pl-2 pr-2' style={{ height: this.state.editorHeight, paddingBottom: '200px' }}>
         <FormGroup>
@@ -137,6 +147,14 @@ export class Editor extends React.Component<any, { campaign: Campaign, editorHei
             </CardBody>
           </Card>
         </FormGroup>
+        <div className='fixed-top m-3'>
+          <Link to='/' className='btn'>Back</Link>
+          <Button type='submit'
+            className='float-right'
+            disabled={!this.state.changed && !!this.state.file}>
+            {this.state.changed || !this.state.file ? 'Save Changes' : 'Saved'}
+          </Button>
+        </div>
       </Form>
     </div>;
   }

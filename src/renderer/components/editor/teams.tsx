@@ -7,10 +7,11 @@ import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
 import ListGroup from 'reactstrap/lib/ListGroup';
 import ListGroupItem from 'reactstrap/lib/ListGroupItem';
+import ListGroupItemHeading from 'reactstrap/lib/ListGroupItemHeading';
+import ListGroupItemText from 'reactstrap/lib/ListGroupItemText';
 import Nav from 'reactstrap/lib/Nav';
 import NavItem from 'reactstrap/lib/NavItem';
 import NavLink from 'reactstrap/lib/NavLink';
-import Row from 'reactstrap/lib/Row';
 import TabContent from 'reactstrap/lib/TabContent';
 import TabPane from 'reactstrap/lib/TabPane';
 import { Participant, Team } from '../../../typings/campaign';
@@ -81,14 +82,15 @@ export class TeamTabs extends React.Component<TeamTabsProps, TeamTabsState> {
   private renderParticipants = (team: Team) => {
     const participants = this.props.participants.map((p, i) => ({ ...p, i: i }))
       .filter(p => p.team === team.id);
-    return <Col className='w-25'>
+    return <Col sm={4}>
       <ListGroup>
         <Label>Armies</Label>
         {!participants.length && <p>No armies assigned!</p>}
         {participants.map((p) => {
-          let text = p.race.trim() && `[${p.race}] `;
-          text += p.army.trim() ? p.army.trim() : `<Army-${p.i + 1}>`;
-          return <ListGroupItem>{text}</ListGroupItem>;
+          return <ListGroupItem>
+            <ListGroupItemHeading>{p.army.trim() ? p.army.trim() : `<Army-${p.i + 1}>`}</ListGroupItemHeading>
+            {p.race.trim() && <ListGroupItemText><i>{p.race.trim()}</i></ListGroupItemText>}
+          </ListGroupItem>;
         })}
       </ListGroup>
     </Col>;
@@ -110,38 +112,36 @@ export class TeamTabs extends React.Component<TeamTabsProps, TeamTabsState> {
       <TabContent className='p-3' activeTab={this.state.activeTab} >
         {this.state.teams.map((team, i) =>
           <TabPane tabId={i}>
-            <Fade in={this.state.activeTab === i} >
-              <Row>
-                {this.renderParticipants(team)}
-                <Col className='d-flex flex-column'>
-                  <FormGroup>
-                    <Label>Name</Label>
-                    <Input type='text' placeholder='What is the name of this team?'
-                      value={team.name}
-                      onChange={(e) => this.handleTeamChange(i, 'name', e.target.value)}
-                      disabled={team.locked} />
-                  </FormGroup>
-                  <FormGroup>
-                    <Label>About</Label>
-                    <Input type='textarea' placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
-                      value={team.about}
-                      onChange={(e) => this.handleTeamChange(i, 'about', e.target.value)}
-                      disabled={team.locked} />
-                  </FormGroup>
-                  <div className='align-self-end'>
-                    <Button color={team.locked ? 'dark' : 'primary'}
-                      onClick={() => this.toggleLock(i)}
-                      style={{ width: '75px' }}>
-                      {team.locked ? 'Unlock' : 'Lock'}
-                    </Button>
-                    {this.state.teams.length > 2
-                      && <Button color='danger' className='ml-2'
-                        onClick={() => this.deleteTeam()}
-                        style={{ width: '75px' }}
-                        disabled={team.locked}>Delete</Button>}
-                  </div>
-                </Col>
-              </Row>
+            <Fade in={this.state.activeTab === i} className='row'>
+              <Col className='d-flex flex-column' sm={8}>
+                <FormGroup>
+                  <Label>Name</Label>
+                  <Input type='text' placeholder='What is the name of this team?'
+                    value={team.name}
+                    onChange={(e) => this.handleTeamChange(i, 'name', e.target.value)}
+                    disabled={team.locked} />
+                </FormGroup>
+                <FormGroup>
+                  <Label>About</Label>
+                  <Input type='textarea' placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
+                    value={team.about}
+                    onChange={(e) => this.handleTeamChange(i, 'about', e.target.value)}
+                    disabled={team.locked} />
+                </FormGroup>
+                <div>
+                  <Button color={team.locked ? 'dark' : 'primary'}
+                    onClick={() => this.toggleLock(i)}
+                    style={{ width: '75px' }}>
+                    {team.locked ? 'Unlock' : 'Lock'}
+                  </Button>
+                  {this.state.teams.length > 2
+                    && <Button color='danger' className='ml-2 float-right'
+                      onClick={() => this.deleteTeam()}
+                      style={{ width: '75px' }}
+                      disabled={team.locked}>Delete</Button>}
+                </div>
+              </Col>
+              {this.renderParticipants(team)}
             </Fade>
           </TabPane>
         )}

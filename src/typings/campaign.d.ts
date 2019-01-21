@@ -4,7 +4,7 @@ export type Campaign = {
   involved: Participant[];
   teams: Team[];
   missions: Mission[];
-  gameOptions: string[];
+  gameOptions: GameOptions;
   gameRules: string[];
   customRules: string;
   loseRules: LoseMission;
@@ -25,7 +25,7 @@ type Mission = {
     spawn: number;
     about: string;
   }[];
-  gameOptions: string[];
+  gameOptions: GameOptions;
   gameRules: string[];
   customRules: string;
 };
@@ -33,8 +33,8 @@ type Mission = {
 type LoseMission = {
   ironman: boolean;
   map?: 'Previous' | 'Random' | 'Random Previous';
-  rules?: string[];
-  options?: string[];
+  gameOptions?: GameOptions;
+  gameRules?: string[];
   customRules?: string;
 };
 
