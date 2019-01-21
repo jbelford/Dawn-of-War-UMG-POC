@@ -37,6 +37,7 @@ export class Settings extends React.Component<any, SettingsState> {
   }
 
   render() {
+    // console.log(Soulstorm.getModules());
     console.log(Soulstorm.getModWinConditions());
 
     return (
