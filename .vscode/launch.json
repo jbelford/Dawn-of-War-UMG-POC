@@ -7,6 +7,16 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch Program",
+      "program": "${workspaceFolder}/scripts/dow-parser.js",
+      "args": [
+        "D:\\jackb\\Documents\\Projects\\Dow\\dawnofwarunsga_v10"
+      ],
+      "cwd": "${workspaceFolder}/scripts"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Electron Main",
       "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron-forge-vscode-nix",
       "windows": {
