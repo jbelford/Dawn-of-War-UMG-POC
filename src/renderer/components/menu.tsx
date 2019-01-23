@@ -74,7 +74,10 @@ class Dropdown extends React.Component<DropdownProps, any> {
         {this.props.children}
       </DropdownToggle>
       <DropdownMenu>
-        {this.props.options.map((option, i) => <DropdownItem onClick={() => this.props.onSelect(i)}>{option}</DropdownItem>)}
+        {this.props.options.map((option, i) =>
+          <DropdownItem key={i} onClick={() => this.props.onSelect(i)}>
+            {option}
+          </DropdownItem>)}
       </DropdownMenu>
     </ButtonDropdown>;
   }

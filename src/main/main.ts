@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
+// import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import * as path from 'path';
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -14,6 +15,11 @@ let mainWindow: Electron.BrowserWindow | null = null;
 
 
 const createWindow = async () => {
+
+  // await installExtension(REACT_DEVELOPER_TOOLS)
+  //   .then(name => console.log(`Added extension: ${name}`),
+  //     err => console.log(`Error installing extension: ${err.stack || err}`));
+
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
@@ -39,6 +45,7 @@ const createWindow = async () => {
   ipcMain.on('Main#Quit', () => {
     if (mainWindow) mainWindow.close();
   });
+
 
 };
 

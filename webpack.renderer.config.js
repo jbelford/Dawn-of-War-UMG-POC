@@ -14,14 +14,8 @@ module.exports = {
         }
       },
       {
-        test: /\.(png|jp(e*)g|svg)$/,
-        use: [{
-          loader: 'url-loader',
-          options: {
-            limit: 8000,
-            name: 'img/[name].[ext]'
-          }
-        }]
+        test: /\.(?:png|jpeg|jpg)$/,
+        use: 'url-loader'
       }
     ]
   }

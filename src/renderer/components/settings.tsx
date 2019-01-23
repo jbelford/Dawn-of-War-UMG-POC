@@ -9,7 +9,6 @@ import InputGroup from 'reactstrap/lib/InputGroup';
 import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
 import Label from 'reactstrap/lib/Label';
 import { AppData, UserSettings } from '../../main/appdata';
-import { Soulstorm } from '../../main/soulstorm';
 const { dialog } = remote;
 
 export class Settings extends React.Component<any, SettingsState> {
@@ -37,9 +36,6 @@ export class Settings extends React.Component<any, SettingsState> {
   }
 
   render() {
-    // console.log(Soulstorm.getModules());
-    console.log(Soulstorm.getModWinConditions());
-
     return (
       <div className='container'>
         <h1 className='display-4'>Settings</h1>

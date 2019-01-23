@@ -41,7 +41,7 @@ fs.readdir(dir, { withFileTypes: true }, (err, files) => {
 
   data.maps = data.maps.sort((a, b) => a.players === b.players ? a.name.localeCompare(b.name) : a.players - b.players);
 
-  fs.writeFileSync('data.json', JSON.stringify(data, null, 2), { encoding: 'utf8' });
+  fs.writeFileSync('data.json', JSON.stringify(data), { encoding: 'utf8' });
 });
 
 function replaceLocales(obj) {
@@ -96,19 +96,20 @@ function readMap(filePath) {
   }
 
   const tga = new TGA(imageData);
+
   const png = new PNG({ width: tga.width, height: tga.height });
   // @ts-ignore
   png.data = tga.pixels;
 
-  const pic = /\\([^\\]+)\.sgb$/g.exec(filePath)[1];
-  png.pack().pipe(fs.createWriteStream(path.join('mimgs', `${pic}.png`)));
+  const name = /\\([^\\]+)\.sgb$/g.exec(filePath)[1];
+  png.pack().pipe(fs.createWriteStream(path.join('mimgs', `${name}.png`)));
 
   const mapDetails = getMapDetails(filePath);
-  mapDetails.pic = `${pic}.png`;
+  mapDetails.pic = `${name}.png`;
 
   // All base game maps are prefixed with the # of players the map supports.
   // If the map name # is not the same as the actual value set then there is something fishy here.
-  const expectedPlayers = parseInt(pic[0]);
+  const expectedPlayers = parseInt(name[0]);
   if (expectedPlayers !== mapDetails.players) {
     console.log(`Ignoring bad file: ${filePath}`);
     return;

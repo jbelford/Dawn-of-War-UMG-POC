@@ -88,7 +88,7 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
     return <div>
       <Nav tabs>
         {this.state.participants.map((participant, i) => (
-          <NavItem>
+          <NavItem key={participant.id}>
             <NavLink className={classnames({ active: this.state.activeTab === i })}
               onClick={() => this.toggle(i)}>
               {participant.army.trim() ? participant.army.trim() : `<Army-${i + 1}>`}

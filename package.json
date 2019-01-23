@@ -17,12 +17,6 @@
     "forge": "./forge.config.js"
   },
   "dependencies": {
-    "@types/classnames": "^2.2.7",
-    "@types/electron-devtools-installer": "^2.2.0",
-    "@types/react": "^16.7.18",
-    "@types/react-dom": "^16.0.11",
-    "@types/react-hot-loader": "4.1.0",
-    "@types/reactstrap": "^6.4.4",
     "bootstrap": "^4.2.1",
     "classnames": "^2.2.6",
     "electron-squirrel-startup": "1.0.0",
@@ -39,6 +33,12 @@
     "tslib": "1.4.0"
   },
   "devDependencies": {
+    "@types/classnames": "^2.2.7",
+    "@types/electron-devtools-installer": "^2.2.0",
+    "@types/react": "^16.7.18",
+    "@types/react-dom": "^16.0.11",
+    "@types/react-hot-loader": "4.1.0",
+    "@types/reactstrap": "^6.4.4",
     "@electron-forge/cli": "6.0.0-beta.30",
     "@electron-forge/maker-deb": "6.0.0-beta.30",
     "@electron-forge/maker-rpm": "6.0.0-beta.30",
