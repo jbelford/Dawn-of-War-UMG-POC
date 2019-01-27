@@ -1,3 +1,5 @@
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.css', '.html', '.json', '.js', '.jpg']
@@ -18,5 +20,10 @@ module.exports = {
         use: 'url-loader'
       }
     ]
-  }
+  },
+  plugins: [
+    new CopyWebpackPlugin([
+      { from: 'scripts/mimgs', to: 'img/w40k/maps' }
+    ])
+  ]
 };

@@ -183,7 +183,6 @@ function readWinCondition(filePath) {
   init.fields.forEach(field => values[field.key.name] = field.value.value);
 
   data.wcs.push({
-    mod: -1,
     title: values['title'],
     description: values['description'],
     victoryCondition: values['victory_condition'],
