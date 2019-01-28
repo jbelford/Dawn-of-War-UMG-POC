@@ -68,7 +68,7 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
             disabled={this.state.locked}
             onChange={(e) => this.handleParticipantChange('team', +e.target.value)}>
             {this.props.teams.map((team, i) => (
-              <option value={team.id}>
+              <option value={team.id} key={i}>
                 {team.name.trim() ? `Team ${i + 1}: ${team.name.trim()}` : `Team ${i + 1}: <Team-${i + 1}>`}
               </option>
             ))}

@@ -7,7 +7,7 @@ import NavLink from 'reactstrap/lib/NavLink';
 import TabContent from 'reactstrap/lib/TabContent';
 import TabPane from 'reactstrap/lib/TabPane';
 import { Participant, Team } from '../../../../typings/campaign';
-import { TeamTabsForm } from './form';
+import { TeamTabsForm } from './tform';
 import classnames = require('classnames');
 
 type TeamTabsProps = {
@@ -68,7 +68,7 @@ export class TeamTabs extends React.Component<TeamTabsProps, TeamTabsState> {
       </Nav>
       <TabContent className='p-3' activeTab={this.state.activeTab} >
         {this.props.teams.map((team, i) =>
-          <TabPane tabId={i}>
+          <TabPane tabId={i} key={i}>
             <Fade in={this.state.activeTab === i}>
               <TeamTabsForm team={team} participants={this.props.participants} onChange={(t) => this.onChangeTeam(t, i)} />
             </Fade>

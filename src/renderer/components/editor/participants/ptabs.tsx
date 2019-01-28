@@ -8,7 +8,7 @@ import NavLink from 'reactstrap/lib/NavLink';
 import TabContent from 'reactstrap/lib/TabContent';
 import TabPane from 'reactstrap/lib/TabPane';
 import { Participant, Team } from '../../../../typings/campaign';
-import { ParticipantForm } from './form';
+import { ParticipantForm } from './pform';
 const spaceMarinePortrait = require('../../../img/spacemarine.jpg');
 
 type ParticipantTabProps = {
@@ -64,7 +64,7 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
       </Nav>
       <TabContent className='p-3' activeTab={this.state.activeTab} >
         {this.props.participants.map((participant, i) => (
-          <TabPane tabId={i}>
+          <TabPane tabId={i} key={i}>
             <Fade className='d-flex flex-column' in={this.state.activeTab === i} >
               <ParticipantForm participant={participant} teams={this.props.teams} onChange={p => this.participantChange(p, i)} />
             </Fade>

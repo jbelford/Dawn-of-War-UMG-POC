@@ -89,7 +89,7 @@ function ParticipantsList(props: { participants: Participant[], teamId: number }
       <Label>Armies</Label>
       {!participants.length && <p>No armies assigned!</p>}
       {participants.map((p) => {
-        return <ListGroupItem>
+        return <ListGroupItem key={p.id}>
           <ListGroupItemHeading>{p.army.trim() ? p.army.trim() : `<Army-${p.i + 1}>`}</ListGroupItemHeading>
           {p.race.trim() && <ListGroupItemText><i>{p.race.trim()}</i></ListGroupItemText>}
         </ListGroupItem>;

@@ -60,7 +60,8 @@ type Level = {
 };
 
 declare const enum GameDiff {
-  EASY = 0,
+  ANY = 0,
+  EASY,
   STANDARD,
   HARD,
   HARDER,
@@ -68,19 +69,22 @@ declare const enum GameDiff {
 }
 
 declare const enum GameStartResource {
-  STANDARD = 0,
+  ANY = 0,
+  STANDARD,
   QUICK
 }
 
 declare const enum GameSpeed {
-  VERY_SLOW = 0,
+  ANY = 0,
+  VERY_SLOW,
   SLOW,
   NORMAL,
   FAST
 }
 
 declare const enum GameResourceRate {
-  LOW = 0,
+  ANY = 0,
+  LOW,
   STANDARD,
   HIGH
 }
