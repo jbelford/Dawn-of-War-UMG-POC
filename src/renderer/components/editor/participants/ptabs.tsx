@@ -49,7 +49,19 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
     this.props.onChange(participants);
   }
 
+  private deleteParticipant = (i: number) => {
+    if (this.props.participants.length > 1) {
+      const participants = this.props.participants.slice(0, i).concat(this.props.participants.slice(i + 1));
+      const activeTab = this.state.activeTab;
+      if (i <= activeTab) {
+        this.setState({ ...this.state, activeTab: activeTab - Math.sign(activeTab) });
+      }
+      this.props.onChange(participants);
+    }
+  }
+
   render() {
+    const showDelete = this.props.participants.length > 2;
     return <div>
       <Nav tabs>
         {this.props.participants.map((participant, i) => (
@@ -66,7 +78,12 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
         {this.props.participants.map((participant, i) => (
           <TabPane tabId={i} key={i}>
             <Fade className='d-flex flex-column' in={this.state.activeTab === i} >
-              <ParticipantForm participant={participant} teams={this.props.teams} onChange={p => this.participantChange(p, i)} />
+              <ParticipantForm
+                participant={participant}
+                teams={this.props.teams}
+                showDelete={showDelete}
+                onChange={p => this.participantChange(p, i)}
+                onDelete={() => this.deleteParticipant(i)} />
             </Fade>
           </TabPane>
         ))}

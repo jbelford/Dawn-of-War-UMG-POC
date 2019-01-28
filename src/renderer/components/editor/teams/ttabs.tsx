@@ -44,21 +44,25 @@ export class TeamTabs extends React.Component<TeamTabsProps, TeamTabsState> {
     this.props.onChange(teams);
   }
 
-  // private deleteTeam = () => {
-  //   if (this.state.teams.length > 1) {
-  //     this.state.teams.splice(this.state.activeTab, 1);
-  //     const activeTab = this.state.activeTab;
-  //     this.setState({ ...this.state, activeTab: activeTab - Math.sign(activeTab) });
-  //     this.emitUpdate();
-  //   }
-  // }
+  private deleteTeam = (i: number) => {
+    if (this.props.teams.length > 1) {
+      const teams = this.props.teams.slice(0, i).concat(this.props.teams.slice(i + 1));
+      const activeTab = this.state.activeTab;
+      if (i <= activeTab) {
+        this.setState({ ...this.state, activeTab: activeTab - Math.sign(activeTab) });
+      }
+      this.props.onChange(teams);
+    }
+  }
 
   render() {
+    const showDelete = this.props.teams.length > 2;
     return <div>
       <Nav tabs>
         {this.props.teams.map((team, i) => (
           <NavItem>
-            <NavLink className={classnames({ active: this.state.activeTab === i })}
+            <NavLink
+              className={classnames({ active: this.state.activeTab === i })}
               onClick={() => this.toggle(i)}>
               {team.name.trim() ? team.name.trim() : `<Team-${i + 1}>`}
             </NavLink>
@@ -70,7 +74,12 @@ export class TeamTabs extends React.Component<TeamTabsProps, TeamTabsState> {
         {this.props.teams.map((team, i) =>
           <TabPane tabId={i} key={i}>
             <Fade in={this.state.activeTab === i}>
-              <TeamTabsForm team={team} participants={this.props.participants} onChange={(t) => this.onChangeTeam(t, i)} />
+              <TeamTabsForm
+                team={team}
+                showDelete={showDelete}
+                participants={this.props.participants}
+                onChange={(t) => this.onChangeTeam(t, i)}
+                onDelete={() => this.deleteTeam(i)} />
             </Fade>
           </TabPane>
         )}

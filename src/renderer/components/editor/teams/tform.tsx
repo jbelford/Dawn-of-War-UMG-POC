@@ -15,11 +15,12 @@ import { Participant, Team } from '../../../../typings/campaign';
 type TeamTabsFormProps = {
   team: Team;
   participants: Participant[];
+  showDelete: boolean;
   onChange: (team: Team) => void;
+  onDelete: () => void;
 };
 
 type TeamTabsFormState = {
-  team: Team;
   locked: boolean;
 };
 
@@ -27,14 +28,13 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
 
   constructor(props: any) {
     super(props);
-    this.state = { team: this.props.team, locked: true };
+    this.state = { locked: true };
   }
 
 
   private handleTeamChange = (key: string, value: string) => {
-    const team = this.state.team;
+    const team = this.props.team;
     team[key] = value;
-    this.setState({ ...this.state, team: team });
     this.props.onChange(team);
   }
 
@@ -48,7 +48,7 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
         <FormGroup>
           <Label>Name</Label>
           <Input type='text' placeholder='What is the name of this team?'
-            value={this.state.team.name}
+            value={this.props.team.name}
             onChange={(e) => this.handleTeamChange('name', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
@@ -58,7 +58,7 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
             minRows={2}
             maxRows={10}
             placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
-            value={this.state.team.about}
+            value={this.props.team.about}
             onChange={(e) => this.handleTeamChange('about', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
@@ -68,14 +68,14 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
             style={{ width: '75px' }}>
             {this.state.locked ? 'Unlock' : 'Lock'}
           </Button>
-          {/* {this.state.teams.length > 2
+          {this.props.showDelete
             && <Button color='danger' className='ml-2 float-right'
-              onClick={() => this.deleteTeam()}
+              onClick={this.props.onDelete}
               style={{ width: '75px' }}
-              disabled={team.locked}>Delete</Button>} */}
+              disabled={this.state.locked}>Delete</Button>}
         </div>
       </Col>
-      <ParticipantsList participants={this.props.participants} teamId={this.state.team.id} />
+      <ParticipantsList participants={this.props.participants} teamId={this.props.team.id} />
     </Row>;
   }
 

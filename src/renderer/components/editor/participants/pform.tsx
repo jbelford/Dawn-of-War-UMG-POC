@@ -10,11 +10,12 @@ import { Participant, Team } from '../../../../typings/campaign';
 type ParticipantFormProps = {
   participant: Participant;
   teams: Team[];
+  showDelete: boolean;
   onChange: (p: Participant) => void;
+  onDelete: () => void;
 };
 
 type ParticipantFormState = {
-  participant: Participant;
   locked: boolean;
 };
 
@@ -22,13 +23,12 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
 
   constructor(props: any) {
     super(props);
-    this.state = { participant: this.props.participant, locked: true };
+    this.state = { locked: true };
   }
 
   private handleParticipantChange = (key: string, value: any) => {
-    const participant = this.state.participant;
+    const participant = this.props.participant;
     participant[key] = value;
-    this.setState({ ...this.state, participant: participant });
     this.props.onChange(participant);
   }
 
@@ -40,7 +40,7 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
     return <Media>
       <Media left href='#' className='w-25 mr-2'>
         <Media object
-          src={this.state.participant.portrait}
+          src={this.props.participant.portrait}
           className='img-thumbnail'
           alt='Portrait Image' />
       </Media>
@@ -49,7 +49,7 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
           <Label>Army</Label>
           <Input type='text'
             placeholder='What is the name of the army? (Ex: Blood Angels)'
-            value={this.state.participant.army}
+            value={this.props.participant.army}
             onChange={(e) => this.handleParticipantChange('army', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
@@ -57,14 +57,14 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
           <Label>Race</Label>
           <Input type='text'
             placeholder='What race is this participant? (Ex: Space Marines)'
-            value={this.state.participant.race}
+            value={this.props.participant.race}
             onChange={(e) => this.handleParticipantChange('race', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
         <FormGroup>
           <Label>Team</Label>
           <Input type='select'
-            value={this.state.participant.team}
+            value={this.props.participant.team}
             disabled={this.state.locked}
             onChange={(e) => this.handleParticipantChange('team', +e.target.value)}>
             {this.props.teams.map((team, i) => (
@@ -81,7 +81,7 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
             minRows={2}
             maxRows={10}
             placeholder='Who are they? Why are they involved in this campaign?'
-            value={this.state.participant.about} onChange={(e) => this.handleParticipantChange('about', e.target.value)}
+            value={this.props.participant.about} onChange={(e) => this.handleParticipantChange('about', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
         <div>
@@ -91,10 +91,10 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
             style={{ width: '75px' }}>
             {this.state.locked ? 'Unlock' : 'Lock'}
           </Button>
-          {/* <Button color='danger' className='ml-2 float-right'
-              onClick={() => this.deleteParticipant()}
-              style={{ width: '75px' }}
-              disabled={participant.locked}>Delete</Button> */}
+          {this.props.showDelete && <Button color='danger' className='ml-2 float-right'
+            onClick={this.props.onDelete}
+            style={{ width: '75px' }}
+            disabled={this.state.locked}>Delete</Button>}
         </div>
       </Media>
     </Media>;
