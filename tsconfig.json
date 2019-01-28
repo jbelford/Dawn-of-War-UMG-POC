@@ -18,10 +18,13 @@
     "pretty": true,
     "target": "es2015",
     "jsx": "react",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
   },
   "formatCodeOptions": {
     "indentSize": 2,
     "tabSize": 2
-  }
+  },
+  "include": [
+    "./src/common/**/*.ts"
+  ]
 }

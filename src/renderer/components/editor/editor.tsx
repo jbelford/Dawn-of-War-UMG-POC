@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import TextAreaAutosize from 'react-textarea-autosize';
 import Button from 'reactstrap/lib/Button';
 import Card from 'reactstrap/lib/Card';
 import CardBody from 'reactstrap/lib/CardBody';
@@ -9,8 +10,9 @@ import Form from 'reactstrap/lib/Form';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
-import { Campaign, Participant, Team } from '../../../typings/campaign';
-import { ParticipantTabs } from './participants';
+import { Campaign, GameOptions, Participant, Team } from '../../../typings/campaign';
+import { GameOptionsComponent } from './options';
+import { ParticipantTabs } from './participants/tabs';
 import { TeamTabs } from './teams';
 const spaceMarinePortrait = require('../../img/spacemarine.jpg');
 
@@ -20,6 +22,7 @@ type EditorState = {
   changed: boolean;
   file?: string;
 };
+
 export class Editor extends React.Component<any, EditorState> {
 
   private headerRef: React.RefObject<HTMLDivElement>;
@@ -70,24 +73,32 @@ export class Editor extends React.Component<any, EditorState> {
     }
   }
 
-  private campaignNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  private campaignNameChange: React.ChangeEventHandler<HTMLInputElement> = e => {
     const campaign = this.state.campaign;
     campaign.name = e.target.value;
     this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
-  private descriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  private descriptionChange: React.ChangeEventHandler<HTMLTextAreaElement> = e => {
     const campaign = this.state.campaign;
     campaign.about = e.target.value;
     this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
+  private customRulesChange: React.ChangeEventHandler<HTMLTextAreaElement> = e => {
+    const campaign = this.state.campaign;
+    campaign.customRules = e.target.value;
+    this.setState({ ...this.state, campaign: campaign, changed: true });
+  }
+
   private teamsChange = (teams: Team[]) => {
     const campaign = this.state.campaign;
     campaign.teams = teams;
-    campaign.involved = this.state.campaign.involved
-      .map(participant => teams.every(team => team.id !== participant.team)
-        ? { ...participant, team: teams[0].id } : participant);
+    campaign.involved.forEach(participant => {
+      if (teams.every(team => team.id !== participant.team)) {
+        participant.team = teams[0].id;
+      }
+    });
 
     this.setState({ ... this.state, campaign: campaign, changed: true });
   }
@@ -95,6 +106,12 @@ export class Editor extends React.Component<any, EditorState> {
   private participantsChange = (participants: Participant[]) => {
     const campaign = this.state.campaign;
     campaign.involved = participants;
+    this.setState({ ... this.state, campaign: campaign, changed: true });
+  }
+
+  private gameOptionsChange = (options: GameOptions) => {
+    const campaign = this.state.campaign;
+    campaign.gameOptions = options;
     this.setState({ ... this.state, campaign: campaign, changed: true });
   }
 
@@ -114,38 +131,43 @@ export class Editor extends React.Component<any, EditorState> {
         </FormGroup>
         <FormGroup>
           <Label>Description</Label>
-          <Input type='textarea'
+          <TextAreaAutosize minRows={4}
+            className='form-control'
             placeholder='What is the story of this campaign? Talk about as much as you like.'
             value={this.state.campaign.about}
             onChange={this.descriptionChange} />
         </FormGroup>
+        <CardComponent title='Participants' details={['Here you can configure armies that are involved in this campaign.',
+          'Once configured here, you can reference them in later parts of the setup.']}>
+          <ParticipantTabs participants={this.state.campaign.involved}
+            teams={this.state.campaign.teams}
+            onChange={this.participantsChange} />
+        </CardComponent>
+        <CardComponent title='Teams' details={['Here you can name the parties involved and provide some details for teams as a whole.',
+          'Once configured here, you can reference them in later parts of the setup.']}>
+          <TeamTabs teams={this.state.campaign.teams}
+            participants={this.state.campaign.involved}
+            onChange={this.teamsChange} />
+        </CardComponent>
+        <CardComponent title='Global Game Options'
+          details='These options will be applied across all missions unless overriden.'>
+          <GameOptionsComponent onChange={this.gameOptionsChange} />
+        </CardComponent>
         <FormGroup>
-          <Card>
-            <CardHeader tag='h4' className='text-center'>Participants</CardHeader>
-            <CardText className='lead text-center'>
-              Here you can configure armies that are involved in this campaign.
-              <br />Once configured here, you can reference them in later parts of the setup.
-            </CardText>
-            <CardBody className='p-0'>
-              <ParticipantTabs participants={this.state.campaign.involved}
-                teams={this.state.campaign.teams}
-                onChange={this.participantsChange} />
-            </CardBody>
-          </Card>
+          <Label>Global Game Rules</Label>
         </FormGroup>
         <FormGroup>
-          <Card>
-            <CardHeader tag='h4' className='text-center'>Teams</CardHeader>
-            <CardText className='lead text-center'>
-              Here you can name the parties involved and provide some details for teams as a whole.
-              <br />Once configured here, you can reference them in later parts of the setup.
-            </CardText>
-            <CardBody className='p-0'>
-              <TeamTabs teams={this.state.campaign.teams}
-                participants={this.state.campaign.involved}
-                onChange={this.teamsChange} />
-            </CardBody>
-          </Card>
+          <Label>Lose Rules</Label>
+        </FormGroup>
+        <FormGroup>
+          <Label>Custom Rules</Label>
+          <TextAreaAutosize
+            className='form-control'
+            placeholder='What are custom rules that you would like to be played by? Write anything extra here.'
+            minRows={4}
+            value={this.state.campaign.customRules}
+            onChange={this.customRulesChange}
+          />
         </FormGroup>
         <div className='fixed-top m-3'>
           <Link to='/' className='btn'>Back</Link>
@@ -159,5 +181,19 @@ export class Editor extends React.Component<any, EditorState> {
     </div>;
   }
 
+}
+
+function CardComponent(props: { title: string, details?: string | string[], children?: any }) {
+  return <FormGroup>
+    <Card>
+      <CardHeader tag='h4' className='text-center'>{props.title}</CardHeader>
+      {props.details && <CardText className='lead text-center'>{
+        typeof props.details === 'string' ? props.details : props.details.map(detail => <span>{detail}<br /></span>)
+      }</CardText>}
+      <CardBody className='p-0'>
+        {props.children}
+      </CardBody>
+    </Card>
+  </FormGroup>;
 }
 

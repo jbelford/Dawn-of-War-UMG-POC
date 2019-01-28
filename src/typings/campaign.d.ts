@@ -30,9 +30,15 @@ type Mission = {
   customRules: string;
 };
 
+declare const enum LoseMap {
+  PREVIOUS = 0,
+  RANDOM,
+  RANDOM_PREVIOUS
+}
+
 type LoseMission = {
   ironman: boolean;
-  map?: 'Previous' | 'Random' | 'Random Previous';
+  map?: LoseMap;
   gameOptions?: GameOptions;
   gameRules?: string[];
   customRules?: string;
@@ -53,9 +59,35 @@ type Level = {
   size: number;
 };
 
+declare const enum GameDiff {
+  EASY = 0,
+  STANDARD,
+  HARD,
+  HARDER,
+  INSANE
+}
+
+declare const enum GameStartResource {
+  STANDARD = 0,
+  QUICK
+}
+
+declare const enum GameSpeed {
+  VERY_SLOW = 0,
+  SLOW,
+  NORMAL,
+  FAST
+}
+
+declare const enum GameResourceRate {
+  LOW = 0,
+  STANDARD,
+  HIGH
+}
+
 type GameOptions = {
-  difficulty?: 'Easy' | 'Standard' | 'Hard' | 'Harder' | 'Insane';
-  startingResources?: 'Standard' | 'Quick';
-  gameSpeed?: 'Very Slow' | 'Slow' | 'Normal' | 'Fast';
-  resourceRate?: 'Low' | 'Standard' | 'High';
+  difficulty?: GameDiff;
+  startingResources?: GameStartResource;
+  gameSpeed?: GameSpeed;
+  resourceRate?: GameResourceRate;
 };

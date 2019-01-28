@@ -23,7 +23,7 @@ module.exports = {
   },
   plugins: [
     new CopyWebpackPlugin([
-      { from: 'scripts/mimgs', to: 'img/w40k/maps' }
+      { from: 'data', to: 'data' }
     ])
   ]
 };
