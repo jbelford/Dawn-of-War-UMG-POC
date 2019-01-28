@@ -13,7 +13,7 @@ import Label from 'reactstrap/lib/Label';
 import { Campaign, GameOptions, Participant, Team } from '../../../typings/campaign';
 import { GameOptionsComponent } from './options';
 import { ParticipantTabs } from './participants/tabs';
-import { TeamTabs } from './teams';
+import { TeamTabs } from './teams/tabs';
 const spaceMarinePortrait = require('../../img/spacemarine.jpg');
 
 type EditorState = {
