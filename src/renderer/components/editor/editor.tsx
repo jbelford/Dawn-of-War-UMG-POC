@@ -131,28 +131,37 @@ export class Editor extends React.Component<any, EditorState> {
         </FormGroup>
         <FormGroup>
           <Label>Description</Label>
-          <TextAreaAutosize minRows={4}
+          <TextAreaAutosize
+            minRows={4}
+            maxRows={12}
             className='form-control'
             placeholder='What is the story of this campaign? Talk about as much as you like.'
             value={this.state.campaign.about}
             onChange={this.descriptionChange} />
         </FormGroup>
-        <CardComponent title='Participants' details={['Here you can configure armies that are involved in this campaign.',
-          'Once configured here, you can reference them in later parts of the setup.']}>
-          <ParticipantTabs participants={this.state.campaign.involved}
+        <CardForm
+          title='Participants'
+          details={['Here you can configure armies that are involved in this campaign.',
+            'Once configured here, you can reference them in later parts of the setup.']}>
+          <ParticipantTabs
+            participants={this.state.campaign.involved}
             teams={this.state.campaign.teams}
             onChange={this.participantsChange} />
-        </CardComponent>
-        <CardComponent title='Teams' details={['Here you can name the parties involved and provide some details for teams as a whole.',
-          'Once configured here, you can reference them in later parts of the setup.']}>
-          <TeamTabs teams={this.state.campaign.teams}
+        </CardForm>
+        <CardForm
+          title='Teams'
+          details={['Here you can name the parties involved and provide some details for teams as a whole.',
+            'Once configured here, you can reference them in later parts of the setup.']}>
+          <TeamTabs
+            teams={this.state.campaign.teams}
             participants={this.state.campaign.involved}
             onChange={this.teamsChange} />
-        </CardComponent>
-        <CardComponent title='Global Game Options'
+        </CardForm>
+        <CardForm
+          title='Global Game Options'
           details='These options will be applied across all missions unless overriden.'>
           <GameOptionsComponent onChange={this.gameOptionsChange} />
-        </CardComponent>
+        </CardForm>
         <FormGroup>
           <Label>Global Game Rules</Label>
         </FormGroup>
@@ -165,6 +174,7 @@ export class Editor extends React.Component<any, EditorState> {
             className='form-control'
             placeholder='What are custom rules that you would like to be played by? Write anything extra here.'
             minRows={4}
+            maxRows={12}
             value={this.state.campaign.customRules}
             onChange={this.customRulesChange}
           />
@@ -183,7 +193,7 @@ export class Editor extends React.Component<any, EditorState> {
 
 }
 
-function CardComponent(props: { title: string, details?: string | string[], children?: any }) {
+function CardForm(props: { title: string, details?: string | string[], children?: any }) {
   return <FormGroup>
     <Card>
       <CardHeader tag='h4' className='text-center'>{props.title}</CardHeader>

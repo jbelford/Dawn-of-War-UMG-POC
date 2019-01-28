@@ -1,4 +1,5 @@
 import * as React from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from 'reactstrap';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
@@ -46,14 +47,16 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
       <Media body>
         <FormGroup>
           <Label>Army</Label>
-          <Input type='text' placeholder='What is the name of the army? (Ex: Blood Angels)'
+          <Input type='text'
+            placeholder='What is the name of the army? (Ex: Blood Angels)'
             value={this.state.participant.army}
             onChange={(e) => this.handleParticipantChange('army', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
         <FormGroup>
           <Label>Race</Label>
-          <Input type='text' placeholder='What race is this participant? (Ex: Space Marines)'
+          <Input type='text'
+            placeholder='What race is this participant? (Ex: Space Marines)'
             value={this.state.participant.race}
             onChange={(e) => this.handleParticipantChange('race', e.target.value)}
             disabled={this.state.locked} />
@@ -73,12 +76,17 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
         </FormGroup>
         <FormGroup>
           <Label>About</Label>
-          <Input type='textarea' placeholder='Who are they? Why are they involved in this campaign?'
+          <TextareaAutosize
+            className='form-control'
+            minRows={2}
+            maxRows={10}
+            placeholder='Who are they? Why are they involved in this campaign?'
             value={this.state.participant.about} onChange={(e) => this.handleParticipantChange('about', e.target.value)}
             disabled={this.state.locked} />
         </FormGroup>
         <div>
-          <Button color={this.state.locked ? 'dark' : 'primary'}
+          <Button
+            color={this.state.locked ? 'dark' : 'primary'}
             onClick={this.toggleLock}
             style={{ width: '75px' }}>
             {this.state.locked ? 'Unlock' : 'Lock'}

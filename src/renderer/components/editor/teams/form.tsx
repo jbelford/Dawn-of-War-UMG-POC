@@ -1,4 +1,5 @@
 import * as React from 'react';
+import TextareaAutosize from 'react-textarea-autosize';
 import Button from 'reactstrap/lib/Button';
 import Col from 'reactstrap/lib/Col';
 import FormGroup from 'reactstrap/lib/FormGroup';
@@ -53,7 +54,10 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
         </FormGroup>
         <FormGroup>
           <Label>About</Label>
-          <Input type='textarea' placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
+          <TextareaAutosize className='form-control'
+            minRows={2}
+            maxRows={10}
+            placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
             value={this.state.team.about}
             onChange={(e) => this.handleTeamChange('about', e.target.value)}
             disabled={this.state.locked} />

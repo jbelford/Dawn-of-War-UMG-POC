@@ -27,16 +27,24 @@ export class GameOptionsComponent extends React.Component<{ onChange: (options: 
 
   render() {
     return <div className='p-3'>
-      <IndexFormDropdown label='Difficulty' value={this.state.options.difficulty}
+      <IndexFormSelect
+        label='Difficulty'
+        value={this.state.options.difficulty}
         options={['Easy', 'Standard', 'Hard', 'Harder', 'Insane']}
         onChange={i => this.onChange(i, 'difficulty')} />
-      <IndexFormDropdown label='Starting Resources' value={this.state.options.startingResources}
+      <IndexFormSelect
+        label='Starting Resources'
+        value={this.state.options.startingResources}
         options={['Standard', 'Quick']}
         onChange={i => this.onChange(i, 'startingResources')} />
-      <IndexFormDropdown label='Game Speed' value={this.state.options.gameSpeed}
+      <IndexFormSelect
+        label='Game Speed'
+        value={this.state.options.gameSpeed}
         options={['Very Slow', 'Slow', 'Normal', 'Fast']}
         onChange={i => this.onChange(i, 'gameSpeed')} />
-      <IndexFormDropdown label='Resource Rate' value={this.state.options.resourceRate}
+      <IndexFormSelect
+        label='Resource Rate'
+        value={this.state.options.resourceRate}
         options={['Low', 'Standard', 'High']}
         onChange={i => this.onChange(i, 'resourceRate')} />
     </div>;
@@ -44,32 +52,23 @@ export class GameOptionsComponent extends React.Component<{ onChange: (options: 
 
 }
 
-type IndexFormDropdownProps = {
+type IndexFormSelectProps = {
   label: string,
   options: string[],
   value?: number;
   onChange: (i: number) => void
 };
 
-class IndexFormDropdown extends React.Component<IndexFormDropdownProps, any> {
-
-  constructor(props: any) {
-    super(props);
-    this.state = { value: this.props.value || 0 };
-  }
-
-  onSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value);
-    this.props.onChange(value);
-    this.setState({ value: value });
-  }
-
-  render() {
-    return <FormGroup>
-      <Label>{this.props.label}</Label>
-      <Input type='select' name='select' onChange={this.onSelect}>
-        {this.props.options.map((text, i) => <option key={i} value={i} selected={i === this.state.value}>{text}</option>)}
-      </Input>
-    </FormGroup>;
-  }
+function IndexFormSelect(props: IndexFormSelectProps) {
+  const value = props.value || 0;
+  return <FormGroup>
+    <Label>{props.label}</Label>
+    <Input type='select' name='select' onChange={e => props.onChange(+e.target.value)}>
+      {props.options.map((text, i) =>
+        <option key={i} value={value}
+          selected={i === value}>
+          {text}
+        </option>)}
+    </Input>
+  </FormGroup>;
 }
