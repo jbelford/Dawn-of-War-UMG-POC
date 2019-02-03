@@ -1,12 +1,12 @@
 import * as React from 'react';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
-import { LocalData } from '../../../../common/data';
-import { SelectFormGroup } from '../../util/formgroup';
+import { LocalData } from '../../../../../common/data';
+import { SelectFormGroup } from '../../../util/formgroup';
 
 type Props = {
-  // portrait: { key: string, idx: number };
-  // onChange: (key: string, idx: number) => void;
+  portrait: { key: string, idx: number };
+  onChange: (key: string, idx: number) => void;
 };
 
 type State = {
@@ -37,9 +37,10 @@ export class PortraitSelect extends React.Component<Props, State> {
     const category = this.categories[this.state.selectedCategory];
     const key = this.categoryKeyMap[category];
     const categoryPortraits: string[] = this.portraits[key];
+    const portrait = this.portraits[this.props.portrait.key][this.props.portrait.idx];
 
     return <Row>
-      <Col body className='overflow-auto pt-2'>
+      <Col className='overflow-auto pt-2'>
         <SelectFormGroup
           options={this.categories}
           onChange={this.onCategoryChange}
@@ -47,14 +48,15 @@ export class PortraitSelect extends React.Component<Props, State> {
         />
         {categoryPortraits.map((portrait, i) => (
           <img key={i}
-            className='img-thumbnail w-25'
-            src={portrait} />
+            className='img-thumbnail w-25 cursor-pointer'
+            src={portrait}
+            onClick={() => this.props.onChange(key, i)} />
         ))}
       </Col>
-      <Col className='ml-2' xs={4}>
+      <Col xs={4}>
         <p className='lead'>Selected</p>
         <img
-          src={this.portraits.imperium[0]}
+          src={portrait}
           className='img-thumbnail'
           alt='Portrait Image' />
       </Col>
