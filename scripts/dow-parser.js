@@ -102,6 +102,7 @@ function readMap(filePath) {
   png.data = tga.pixels;
 
   const name = /\\([^\\]+)\.sgb$/g.exec(filePath)[1];
+  // @ts-ignore
   png.pack().pipe(fs.createWriteStream(path.join('mimgs', `${name}.png`)));
 
   const mapDetails = getMapDetails(filePath);

@@ -9,6 +9,7 @@ import InputGroup from 'reactstrap/lib/InputGroup';
 import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
 import Label from 'reactstrap/lib/Label';
 import { AppData, UserSettings } from '../../common/appdata';
+import { Soulstorm } from '../../common/soulstorm';
 const { dialog } = remote;
 
 export class Settings extends React.Component<any, SettingsState> {
@@ -36,6 +37,11 @@ export class Settings extends React.Component<any, SettingsState> {
   }
 
   render() {
+    const data = Soulstorm.getModData();
+    // console.log(Object.keys(data).reduce((prev: MapData[], key) => prev.concat(data[key].maps), [])
+    //   .sort((a, b) => a.players === b.players ? a.name.localeCompare(b.name) : a.players - b.players)
+    //   .filter((v, i, arr) => arr.slice(i + 1).every(x => x.name !== v.name)));
+    console.log(data);
     return (
       <div className='container'>
         <h1 className='display-4'>Settings</h1>

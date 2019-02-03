@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { AppData } from './appdata';
+import { Mod } from './types';
 
 export type PortraitList = {
   chaos: string[];
@@ -29,6 +30,17 @@ export namespace LocalData {
 
   export function getPortraits() {
     return portraits;
+  }
+
+  export function getW40kData(): Mod {
+    const appPath = AppData.getAppPath();
+    const data = JSON.parse(fs.readFileSync(path.join(appPath, 'data', 'w40k', 'data.json'), { encoding: 'utf8' }));
+    data.maps.forEach((map: any) => map.pic = path.join(appPath, 'data', 'w40k', 'maps', 'img', map.pic));
+    return {
+      name: 'Vanilla',
+      winConditions: data.wcs,
+      maps: data.maps
+    };
   }
 
 }

@@ -4,16 +4,63 @@ import * as lua from 'luaparse';
 import * as NodeCache from 'node-cache';
 import * as path from 'path';
 import { AppData } from './appdata';
+import { LocalData } from './data';
+import { MapData, Mod, WinCondition } from './types';
 
 export namespace Soulstorm {
 
   const cache = new NodeCache({ stdTTL: 30 });
 
-  export function getModules(): Module[] {
-    let mods = <Module[]>cache.get('mods');
+  let mods: Mod[];
+
+  export function getModData(): Mod[] {
     if (!mods) {
+      mods = getModules()
+        .map(mod => ({
+          name: mod.name,
+          winConditions: getModWinConditions(mod),
+          maps: getModMaps(mod)
+        }));
+
+      mods = mergeDuplicates(mods);
+
+      const w40kData = LocalData.getW40kData();
+      mods.forEach(mod => {
+        mod.winConditions = mod.winConditions.filter(wc1 => w40kData.winConditions.every(wc2 => wc1.title !== wc2.title))
+          .filter((wc1: WinCondition, i: number, arr) => arr.slice(i + 1).every((wc2: WinCondition) => wc2.title !== wc1.title))
+          .sort((a, b) => a.title.localeCompare(b.title));
+
+        mod.maps = mod.maps.filter(m1 => w40kData.maps.every(m2 => m1.name !== m2.name))
+          .filter((map1: MapData, i: number, arr) => arr.slice(i + 1).every((map2: MapData) => map2.name !== map1.name))
+          .sort((a, b) => a.players === b.players ? a.name.localeCompare(b.name) : a.players - b.players);
+      });
+
+      mods = mods.filter(mod => mod.winConditions.length + mod.maps.length > 0);
+
+      mods.unshift(w40kData);
+    }
+
+    return mods;
+  }
+
+  function mergeDuplicates(mods: Mod[]) {
+    const data = {};
+    mods.forEach(mod => {
+      if (!data[mod.name]) {
+        data[mod.name] = mod;
+      } else {
+        data[mod.name].winConditions = data[mod.name].winConditions.concat(mod.winConditions);
+        data[mod.name].maps = data[mod.name].maps.concat(mod.maps);
+      }
+    });
+    return Object.keys(data).map(key => data[key]);
+  }
+
+  function getModules(): Module[] {
+    let modules = <Module[]>cache.get('modules');
+    if (!modules) {
       const { dir } = AppData.getSettings();
-      mods = fs.readdirSync(dir, { withFileTypes: true })
+      modules = fs.readdirSync(dir, { withFileTypes: true })
         .filter(file => file.isFile() && /\.module$/.test(file.name))
         .map(file => path.join(dir, file.name))
         .map(filepath => fs.readFileSync(filepath, 'utf8'))
@@ -28,56 +75,96 @@ export namespace Soulstorm {
           dataFolders: Object.keys(config).filter(key => /^DataFolder\.\d+$/.test(key)).map(key => config[key]),
           requiredMods: Object.keys(config).filter(key => /^RequiredMod\.\d+$/.test(key)).map(key => config[key])
         }));
-      cache.set('mods', mods);
+      cache.set('modules', modules);
+      console.log(modules);
 
       // A bit of goofy recursion happens here but whatever
-      mods.forEach(replaceLocales);
+      modules.forEach(replaceLocales);
 
     }
-    return mods;
+    return modules;
   }
 
-  export function getModWinConditions(): WinCondition[] {
-    let winConditions = <WinCondition[]>cache.get('winconditions');
+  function getModWinConditions(mod: Module): WinCondition[] {
+    const key = `winconditions#${mod.name}`;
+    let winConditions = <WinCondition[]>cache.get(key);
     if (!winConditions) {
-      winConditions = getModules().map((mod, i) => {
-        const winConditionsPath = path.join(mod.modFolder, 'Data', 'scar', 'winconditions');
-        try {
-          return fs.readdirSync(winConditionsPath, { withFileTypes: true })
-            .filter(file => file.isFile() && /\.lua$/.test(file.name))
-            .map(file => path.join(winConditionsPath, file.name))
-            .map(filepath => lua.parse(fs.readFileSync(filepath, 'utf8')))
-            .map((data: any) => {
-              const body = data.body.find((body: any) => body.type === 'AssignmentStatement'
-                && body.variables.every((v: any) => v.type === 'Identifier' && v.name === 'Localization'));
-              if (!body) return null;
+      const winConditionsPath = path.join(mod.modFolder, 'Data', 'scar', 'winconditions');
+      try {
+        winConditions = fs.readdirSync(winConditionsPath, { withFileTypes: true })
+          .filter(file => file.isFile() && /\.lua$/.test(file.name))
+          .map(file => path.join(winConditionsPath, file.name))
+          .map(filepath => lua.parse(fs.readFileSync(filepath, 'utf8')))
+          .map((data: any) => {
+            const body = data.body.find((body: any) => body.type === 'AssignmentStatement'
+              && body.variables.every((v: any) => v.type === 'Identifier' && v.name === 'Localization'));
+            if (!body) return null;
 
-              const init = body.init.find((init: any) => init.type === 'TableConstructorExpression');
-              if (!init) return null;
+            const init = body.init.find((init: any) => init.type === 'TableConstructorExpression');
+            if (!init) return null;
 
-              const values = {};
-              init.fields.forEach((field: any) => values[field.key.name] = field.value.value);
+            const values = {};
+            init.fields.forEach((field: any) => values[field.key.name] = field.value.value);
 
-              return replaceLocales(<WinCondition>{
-                mod: i,
-                title: values['title'],
-                description: values['description'],
-                victoryCondition: values['victory_condition'],
-                alwaysOn: values['always_on'],
-                exclusive: values['exclusive'],
-              });
-            })
-            .filter(wc => !!wc && !!wc.title && !!wc.title.trim()) as WinCondition[];
-        } catch (e) {
-          return [];
-        }
-      })
-        .reduce((prev, curr) => prev.concat(curr))
-        .sort((a, b) => a.mod === b.mod ? a.title.localeCompare(b.title) : a.mod - b.mod);
+            return replaceLocales(<WinCondition>{
+              title: values['title'],
+              description: values['description'],
+              victoryCondition: values['victory_condition'],
+              alwaysOn: values['always_on'],
+              exclusive: values['exclusive'],
+            });
+          })
+          .filter(wc => !!wc && !!wc.title && !!wc.title.trim()) as WinCondition[];
+      } catch (e) {
+        winConditions = [];
+      }
 
-      cache.set('winconditions', winConditions);
+      cache.set(key, winConditions);
     }
     return winConditions;
+  }
+
+  function getModMaps(mod: Module): MapData[] {
+    const mapsPath = path.join(mod.modFolder, 'Data', 'scenarios', 'mp');
+    let maps: MapData[];
+    try {
+      maps = fs.readdirSync(mapsPath, { withFileTypes: true })
+        .filter(file => file.isFile() && /\.sgb$/.test(file.name))
+        .map(file => readMap(path.join(mapsPath, file.name)))
+        .filter(map => !!map) as MapData[];
+
+      maps.forEach(replaceLocales);
+    } catch (e) {
+      maps = [];
+    }
+    return maps;
+  }
+
+  function readMap(filePath: string): MapData | null {
+    const stripExt = filePath.replace(/\.sgb$/, '');
+    let imagePath: string;
+    if (fs.existsSync(stripExt + '_icon_custom.tga')) {
+      imagePath = stripExt + '_icon_custom.tga';
+    } else if (fs.existsSync(stripExt + '_icon.tga')) {
+      imagePath = stripExt + '_icon.tga';
+    } else if (fs.existsSync(stripExt + '.tga')) {
+      imagePath = stripExt + '.tga';
+    } else if (fs.existsSync(stripExt + '_mm.tga')) {
+      imagePath = stripExt + '_mm.tga';
+    } else {
+      console.log(`Probably not valid: ${filePath}`);
+      return null;
+    }
+
+    const mapDetails = getMapDetails(filePath);
+    mapDetails.pic = imagePath;
+
+    if (mapDetails.players < 2 || mapDetails.players > 8) {
+      console.log(`Ignoring bad file: ${filePath}`);
+      return null;
+    }
+
+    return mapDetails;
   }
 
   function replaceLocales<T>(obj: T): T {
@@ -122,6 +209,53 @@ export namespace Soulstorm {
     return localeData;
   }
 
+
+  function getMapDetails(filePath: string): MapData {
+    const mapBuffer = fs.readFileSync(filePath).slice(64);
+
+    // The number of players the map supports is always at offset 64 (0x40).
+    const players = mapBuffer[0];
+
+    // I'm not entirely sure the format of the Relic Chunky for determining offsets but one pattern
+    // that seems to be present is that each section of data is separated by 3 NULL bytes (\u0000 OR 0x00)
+    // The next chunk is always labelled by 'FOLDWSTC', preceded by 3 NULL bytes, then the description,
+    // then 2 more null bytes + 2 special bytes, then the name of the map, then 3 more null bytes.
+    let endIdx = 0;
+    while (true) {
+      const val = mapBuffer.slice(endIdx, endIdx + 8).toString();
+      if (val === 'FOLDWSTC') {
+        endIdx = endIdx - 2;
+        break;
+      }
+      endIdx++;
+    }
+
+    let midIdx = endIdx - 2;
+    while (true) {
+      if (mapBuffer[midIdx] === 0 && mapBuffer[midIdx + 1] === 0) {
+        break;
+      }
+      midIdx--;
+    }
+
+    let startIdx = midIdx - 3;
+    while (true) {
+      if (mapBuffer[startIdx] === 0 && mapBuffer[startIdx + 1] === 0 && mapBuffer[startIdx + 2] === 0) {
+        break;
+      }
+      startIdx--;
+    }
+
+    // (1) There appears to be a leftover byte at the end. This is part of the 3 byte separator but I'm not sure what it indicates
+    // since it's a different value each time. It's easiest to just cut it off by subtracting 1.
+    // (2) The NULL bytes appear between each character so we remove them using regex replace.
+    const mapName = mapBuffer.slice(startIdx + 3, midIdx - 2).toString('utf8').replace(/\0/g, '');
+    const description = mapBuffer.slice(midIdx + 2, endIdx - 2).toString('utf8').replace(/\0/g, '');
+
+    return { name: mapName, description: description, players: players, pic: '' };
+  }
+
+
   export type Module = {
     name: string;
     description: string;
@@ -131,15 +265,6 @@ export namespace Soulstorm {
     textureFe: string;
     dataFolders: string[];
     requiredMods: string[];
-  };
-
-  export type WinCondition = {
-    mod: number;
-    title: string;
-    description: string;
-    victoryCondition: boolean;
-    exclusive: boolean;
-    alwaysOn: boolean;
   };
 
 }
