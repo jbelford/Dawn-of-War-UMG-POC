@@ -1,11 +1,13 @@
 import * as React from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from 'reactstrap';
+import Col from 'reactstrap/lib/Col';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
-import Media from 'reactstrap/lib/Media';
+import Row from 'reactstrap/lib/Row';
 import { Participant, Team } from '../../../../typings/campaign';
+import { PortraitModal } from './modal';
 
 type ParticipantFormProps = {
   participant: Participant;
@@ -17,13 +19,17 @@ type ParticipantFormProps = {
 
 type ParticipantFormState = {
   locked: boolean;
+  portraitModal: boolean;
 };
 
 export class ParticipantForm extends React.Component<ParticipantFormProps, ParticipantFormState> {
 
+  private modalRef: React.RefObject<PortraitModal>;
+
   constructor(props: any) {
     super(props);
-    this.state = { locked: true };
+    this.state = { locked: true, portraitModal: false };
+    this.modalRef = React.createRef();
   }
 
   private handleParticipantChange = (key: string, value: any) => {
@@ -36,15 +42,23 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
     this.setState({ ...this.state, locked: !this.state.locked });
   }
 
+  private toggleModal = () => {
+    if (this.modalRef.current) {
+      this.modalRef.current.toggle();
+    }
+  }
+
   render() {
-    return <Media>
-      <Media left href='#' className='w-25 mr-2'>
-        <Media object
+    return <Row>
+      <PortraitModal ref={this.modalRef} isOpen={this.state.portraitModal} />
+      <Col className='mr-2' xs={3}>
+        <img
           src={this.props.participant.portrait}
-          className='img-thumbnail'
-          alt='Portrait Image' />
-      </Media>
-      <Media body>
+          className='img-thumbnail cursor-pointer'
+          alt='Portrait Image'
+          onClick={this.toggleModal} />
+      </Col>
+      <Col>
         <FormGroup>
           <Label>Army</Label>
           <Input type='text'
@@ -96,8 +110,8 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
             style={{ width: '75px' }}
             disabled={this.state.locked}>Delete</Button>}
         </div>
-      </Media>
-    </Media>;
+      </Col>
+    </Row>;
   }
 
 }

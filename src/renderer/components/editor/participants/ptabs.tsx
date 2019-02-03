@@ -7,9 +7,9 @@ import NavItem from 'reactstrap/lib/NavItem';
 import NavLink from 'reactstrap/lib/NavLink';
 import TabContent from 'reactstrap/lib/TabContent';
 import TabPane from 'reactstrap/lib/TabPane';
+import { LocalData, PortraitList } from '../../../../common/data';
 import { Participant, Team } from '../../../../typings/campaign';
 import { ParticipantForm } from './pform';
-const spaceMarinePortrait = require('../../../img/spacemarine.jpg');
 
 type ParticipantTabProps = {
   participants: Participant[];
@@ -23,9 +23,12 @@ type ParticipantTabState = {
 
 export class ParticipantTabs extends React.Component<ParticipantTabProps, ParticipantTabState> {
 
+  private portraits: PortraitList;
+
   constructor(props: any) {
     super(props);
     this.state = { activeTab: 0 };
+    this.portraits = LocalData.getPortraits();
   }
   private toggle = (tab: number) => {
     if (this.state.activeTab !== tab) {
@@ -36,7 +39,7 @@ export class ParticipantTabs extends React.Component<ParticipantTabProps, Partic
   private createParticipant = () => {
     const newId = this.props.participants.reduce((id, p) => Math.max(id, p.id), 0);
     const participants = [...this.props.participants, {
-      id: newId, portrait: spaceMarinePortrait,
+      id: newId, portrait: this.portraits.imperium[0],
       race: '', army: '', about: '', team: 0
     }];
     this.setState({ ...this.state, activeTab: participants.length - 1 });

@@ -9,6 +9,10 @@ export namespace AppData {
     return electron.app || electron.remote.app;
   }
 
+  export function getAppPath() {
+    return getApp().getAppPath();
+  }
+
   function getUserDataPath() {
     const userDataPath = getApp().getPath('userData');
     if (!fs.existsSync(userDataPath)) {

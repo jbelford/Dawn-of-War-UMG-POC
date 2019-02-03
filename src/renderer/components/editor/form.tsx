@@ -10,11 +10,11 @@ import Form from 'reactstrap/lib/Form';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
+import { LocalData, PortraitList } from '../../../common/data';
 import { Campaign, GameDiff, GameOptions, GameResourceRate, GameSpeed, GameStartResource, Participant, Team } from '../../../typings/campaign';
 import { GameOptionsForm } from './options';
 import { ParticipantTabs } from './participants/ptabs';
 import { TeamTabs } from './teams/ttabs';
-const spaceMarinePortrait = require('../../img/spacemarine.jpg');
 
 type CampaignFormProps = {
   className?: string;
@@ -29,17 +29,20 @@ type CampaignFormState = {
 
 export class CampaignForm extends React.Component<CampaignFormProps, CampaignFormState> {
 
+  private portraits: PortraitList;
+
   constructor(props: any) {
     super(props);
+    this.portraits = LocalData.getPortraits();
     this.state = {
       campaign: {
         name: '',
         about: '',
         involved: [{
-          id: 0, portrait: spaceMarinePortrait,
+          id: 0, portrait: this.portraits.imperium[0],
           race: '', army: '', about: '', team: 0
         }, {
-          id: 1, portrait: spaceMarinePortrait,
+          id: 1, portrait: this.portraits.imperium[0],
           race: '', army: '', about: '', team: 1
         }],
         teams: [{ id: 0, name: '', about: '' }, { id: 1, name: '', about: '' }],

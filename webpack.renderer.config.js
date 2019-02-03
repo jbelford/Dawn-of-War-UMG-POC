@@ -1,4 +1,3 @@
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   resolve: {
@@ -8,22 +7,19 @@ module.exports = {
     rules: [
       { test: /\.css$/, use: ['style-loader', 'css-loader'] },
       {
-        test: /\.tsx?$/, use: {
-          loader: 'ts-loader',
-          options: {
-            configFile: "tsconfig.json"
+        test: /\.tsx?$/, use: [
+          {
+            loader: 'ts-loader',
+            options: {
+              configFile: "tsconfig.json"
+            }
           }
-        }
+        ]
       },
       {
         test: /\.(?:png|jpeg|jpg)$/,
         use: 'url-loader'
       }
     ]
-  },
-  plugins: [
-    new CopyWebpackPlugin([
-      { from: 'data', to: 'data' }
-    ])
-  ]
+  }
 };

@@ -1,6 +1,6 @@
 {
   "name": "dow-umg",
-  "productName": "Dawn of War: UMG",
+  "productName": "dow-umg",
   "version": "0.0.1",
   "description": "My Electron application description",
   "main": "./.webpack/main",
@@ -50,7 +50,6 @@
     "@types/react-router-dom": "^4.3.1",
     "@types/react-textarea-autosize": "^4.3.3",
     "@types/reactstrap": "^6.4.4",
-    "copy-webpack-plugin": "^4.6.0",
     "css-loader": "^2.1.0",
     "electron": "4.0.1",
     "electron-devtools-installer": "^2.2.4",
