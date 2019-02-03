@@ -6,7 +6,6 @@ import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
 import Row from 'reactstrap/lib/Row';
-import { LocalData } from '../../../../common/data';
 import { Participant, Team } from '../../../../typings/campaign';
 import { PortraitModal } from './portrait/modal';
 
@@ -21,37 +20,21 @@ type ParticipantFormProps = {
 type ParticipantFormState = {
   locked: boolean;
   portraitModal: boolean;
-  portraitSelected: { key: string, idx: number };
 };
 
 export class ParticipantForm extends React.Component<ParticipantFormProps, ParticipantFormState> {
 
-  private portraits = LocalData.getPortraits();
   private modalRef: React.RefObject<PortraitModal>;
 
   constructor(props: any) {
     super(props);
-    const selected = Object.keys(this.portraits).map(key => ({
-      key: key,
-      idx: this.portraits[key].findIndex((portrait: string) => portrait === this.props.participant.portrait)
-    })).find(portraits => portraits.idx >= 0) as any;
-
-    this.state = { locked: true, portraitModal: false, portraitSelected: selected };
+    this.state = { locked: true, portraitModal: false };
     this.modalRef = React.createRef();
   }
 
   private handleParticipantChange = (key: string, value: any) => {
     const participant = this.props.participant;
     participant[key] = value;
-    this.props.onChange(participant);
-  }
-
-  private onPortraitChange = (key: string, idx: number) => {
-    const selected = { key: key, idx: idx };
-    this.setState({ ...this.state, portraitSelected: selected });
-
-    const participant = this.props.participant;
-    participant.portrait = this.portraits[key][idx];
     this.props.onChange(participant);
   }
 
@@ -69,8 +52,9 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
     return <Row>
       <PortraitModal
         ref={this.modalRef}
-        onSave={this.onPortraitChange}
-        selected={this.state.portraitSelected} />
+        onSave={p => this.handleParticipantChange('portrait', p)}
+        portrait={this.props.participant.portrait}
+        disabled={this.state.locked} />
       <Col xs={3}>
         <img
           src={this.props.participant.portrait}

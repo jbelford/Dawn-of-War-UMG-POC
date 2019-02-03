@@ -5,7 +5,7 @@ import { LocalData } from '../../../../../common/data';
 import { SelectFormGroup } from '../../../util/formgroup';
 
 type Props = {
-  portrait: { key: string, idx: number };
+  selected: { key: string, idx: number };
   onChange: (key: string, idx: number) => void;
 };
 
@@ -26,7 +26,10 @@ export class PortraitSelect extends React.Component<Props, State> {
 
   constructor(props: any) {
     super(props);
-    this.state = { selectedCategory: 0 };
+    this.state = {
+      selectedCategory: Object.keys(this.categoryKeyMap)
+        .findIndex(key => this.categoryKeyMap[key] === this.props.selected.key)
+    };
   }
 
   onCategoryChange = (i: number) => {
@@ -37,7 +40,7 @@ export class PortraitSelect extends React.Component<Props, State> {
     const category = this.categories[this.state.selectedCategory];
     const key = this.categoryKeyMap[category];
     const categoryPortraits: string[] = this.portraits[key];
-    const portrait = this.portraits[this.props.portrait.key][this.props.portrait.idx];
+    const portrait = this.portraits[this.props.selected.key][this.props.selected.idx];
 
     return <Row>
       <Col className='overflow-auto pt-2'>

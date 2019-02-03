@@ -45,7 +45,7 @@ type LoseMission = {
 };
 
 type Participant = {
-  portrait?: string;
+  portrait: string;
   id: number;
   race: string;
   army: string;
