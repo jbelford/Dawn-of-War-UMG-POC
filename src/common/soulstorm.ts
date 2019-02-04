@@ -125,13 +125,21 @@ export namespace Soulstorm {
   }
 
   function getModMaps(mod: Module): MapData[] {
-    const mapsPath = path.join(mod.modFolder, 'Data', 'scenarios', 'mp');
     let maps: MapData[];
     try {
-      maps = fs.readdirSync(mapsPath, { withFileTypes: true })
-        .filter(file => file.isFile() && /\.sgb$/.test(file.name))
-        .map(file => readMap(path.join(mapsPath, file.name)))
-        .filter(map => !!map) as MapData[];
+      function readDir(dir: string): MapData[] {
+        const files = fs.readdirSync(dir, { withFileTypes: true });
+
+        const dirMaps = files.filter(file => file.isFile() && /\.sgb$/.test(file.name))
+          .map(file => readMap(path.join(dir, file.name)))
+          .filter(map => !!map) as MapData[];
+
+        return files.filter(file => file.isDirectory())
+          .map(file => readDir(path.join(dir, file.name)))
+          .reduce((prev, maps) => prev.concat(maps), dirMaps);
+      }
+
+      maps = readDir(path.join(mod.modFolder, 'Data', 'scenarios', 'mp'));
 
       maps.forEach(replaceLocales);
     } catch (e) {
@@ -211,7 +219,24 @@ export namespace Soulstorm {
 
 
   function getMapDetails(filePath: string): MapData {
-    const mapBuffer = fs.readFileSync(filePath).slice(64);
+    let mapBuffer = fs.readFileSync(filePath);
+
+    let offset = 0;
+    for (; ;) {
+      const val = mapBuffer.slice(offset, offset + 8).toString();
+      if (val === 'DATAWMHD') {
+        // 4 byte chunk type, 4 byte chunk id, 4 byte chunk version, 4 byte chunk size
+        offset += 16;
+
+        const namesize = mapBuffer.readIntLE(offset, 4);
+        offset += 4 + namesize;
+        break;
+      }
+
+      offset++;
+    }
+
+    mapBuffer = mapBuffer.slice(offset);
 
     // The number of players the map supports is always at offset 64 (0x40).
     const players = mapBuffer[0];
