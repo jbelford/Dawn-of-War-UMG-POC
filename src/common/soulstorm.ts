@@ -218,66 +218,55 @@ export namespace Soulstorm {
   }
 
 
+  /**
+   * Chunky files are LITTLE-ENDIAN
+   * 
+   * Chunk Header Format:
+   * 4 byte chunk type "DATA"
+   * 4 byte chunk ID "WHMD"
+   * 4 byte chunk version
+   * 4 byte chunk size
+   * 4 byte name size
+   * X byte name
+   * 
+   * Map Chunk Format:
+   * 4 byte player size
+   * 4 byte map size
+   * 4 byte mod/folder/something size 
+   * X byte mod/folder/something
+   * 4 16-bit map name size
+   * X byte map
+   * 4 16-bit map description size
+   * X byte description 
+   */
   function getMapDetails(filePath: string): MapData {
-    let mapBuffer = fs.readFileSync(filePath);
+    let sgbBuffer = fs.readFileSync(filePath);
 
-    let offset = 0;
-    for (; ;) {
-      const val = mapBuffer.slice(offset, offset + 8).toString();
-      if (val === 'DATAWMHD') {
-        // 4 byte chunk type, 4 byte chunk id, 4 byte chunk version, 4 byte chunk size
-        offset += 16;
+    // First we need to find the 'DATAWMHD' chunky type/id as this is where the metadata about the map is stored
+    // I don't know if it's possible to find this without manually searching byte-by-byte
+    const headerOffset = sgbBuffer.indexOf('DATAWMHD', 11, 'utf8');
 
-        const namesize = mapBuffer.readIntLE(offset, 4);
-        offset += 4 + namesize;
-        break;
-      }
+    // The namesize is the number of bytes given to the name of this chunky header
+    // Using this we calculate the offset where the meta data begins
+    const namesize = sgbBuffer.readInt32LE(headerOffset + 16);
+    const chunkOffset = headerOffset + 20 + namesize;
 
-      offset++;
-    }
+    const players = sgbBuffer.readInt32LE(chunkOffset);
+    const mapSize = sgbBuffer.readInt32LE(chunkOffset + 4);
+    const modNameSize = sgbBuffer.readInt32LE(chunkOffset + 8);
 
-    mapBuffer = mapBuffer.slice(offset);
+    const textOffset = chunkOffset + 12 + modNameSize;
 
-    // The number of players the map supports is always at offset 64 (0x40).
-    const players = mapBuffer[0];
+    // Multiply by 2 because it's refering to UTF-16 characters
+    const mapNameSize = sgbBuffer.readInt32LE(textOffset) * 2;
+    const mapNameOffset = textOffset + 4;
+    const mapName = sgbBuffer.toString('utf16le', mapNameOffset, mapNameOffset + mapNameSize);
 
-    // I'm not entirely sure the format of the Relic Chunky for determining offsets but one pattern
-    // that seems to be present is that each section of data is separated by 3 NULL bytes (\u0000 OR 0x00)
-    // The next chunk is always labelled by 'FOLDWSTC', preceded by 3 NULL bytes, then the description,
-    // then 2 more null bytes + 2 special bytes, then the name of the map, then 3 more null bytes.
-    let endIdx = 0;
-    while (true) {
-      const val = mapBuffer.slice(endIdx, endIdx + 8).toString();
-      if (val === 'FOLDWSTC') {
-        endIdx = endIdx - 2;
-        break;
-      }
-      endIdx++;
-    }
+    const mapDescSize = sgbBuffer.readIntLE(mapNameOffset + mapNameSize, 4) * 2;
+    const mapDescOffset = mapNameOffset + mapNameSize + 4;
+    const mapDesc = sgbBuffer.toString('utf16le', mapDescOffset, mapDescOffset + mapDescSize);
 
-    let midIdx = endIdx - 2;
-    while (true) {
-      if (mapBuffer[midIdx] === 0 && mapBuffer[midIdx + 1] === 0) {
-        break;
-      }
-      midIdx--;
-    }
-
-    let startIdx = midIdx - 3;
-    while (true) {
-      if (mapBuffer[startIdx] === 0 && mapBuffer[startIdx + 1] === 0 && mapBuffer[startIdx + 2] === 0) {
-        break;
-      }
-      startIdx--;
-    }
-
-    // (1) There appears to be a leftover byte at the end. This is part of the 3 byte separator but I'm not sure what it indicates
-    // since it's a different value each time. It's easiest to just cut it off by subtracting 1.
-    // (2) The NULL bytes appear between each character so we remove them using regex replace.
-    const mapName = mapBuffer.slice(startIdx + 3, midIdx - 2).toString('utf8').replace(/\0/g, '');
-    const description = mapBuffer.slice(midIdx + 2, endIdx - 2).toString('utf8').replace(/\0/g, '');
-
-    return { name: mapName, description: description, players: players, pic: '' };
+    return { name: mapName, description: mapDesc, players: players, size: mapSize, pic: '' };
   }
 
 

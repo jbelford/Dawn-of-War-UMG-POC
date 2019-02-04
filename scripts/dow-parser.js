@@ -30,8 +30,8 @@ fs.readdir(dir, { withFileTypes: true }, (err, files) => {
     return console.log(`Error: ${err.stack || err}`);
   }
 
-  if (!fs.existsSync('mimgs')) {
-    fs.mkdirSync('mimgs');
+  if (!fs.existsSync('maps')) {
+    fs.mkdirSync('maps');
   }
 
   readDir(dir, files);
@@ -103,7 +103,7 @@ function readMap(filePath) {
 
   const name = /\\([^\\]+)\.sgb$/g.exec(filePath)[1];
   // @ts-ignore
-  png.pack().pipe(fs.createWriteStream(path.join('mimgs', `${name}.png`)));
+  png.pack().pipe(fs.createWriteStream(path.join('maps', `${name}.png`)));
 
   const mapDetails = getMapDetails(filePath);
   mapDetails.pic = `${name}.png`;
@@ -123,48 +123,33 @@ function readMap(filePath) {
  * @param {string} filePath 
  */
 function getMapDetails(filePath) {
-  const mapBuffer = fs.readFileSync(filePath).slice(64);
+  let sgbBuffer = fs.readFileSync(filePath);
 
-  // The number of players the map supports is always at offset 64 (0x40).
-  const players = mapBuffer[0];
+  // First we need to find the 'DATAWMHD' chunky type/id as this is where the metadata about the map is stored
+  // I don't know if it's possible to find this without manually searching byte-by-byte
+  const headerOffset = sgbBuffer.indexOf('DATAWMHD', 11, 'utf8');
 
-  // I'm not entirely sure the format of the Relic Chunky for determining offsets but one pattern
-  // that seems to be present is that each section of data is separated by 3 NULL bytes (\u0000 OR 0x00)
-  // The next chunk is always labelled by 'FOLDWSTC', preceded by 3 NULL bytes, then the description,
-  // then 3 more null bytes, then the name of the map, then 3 more null bytes.
-  let endIdx = 0;
-  while (true) {
-    const val = mapBuffer.slice(endIdx, endIdx + 8).toString()
-    if (val === 'FOLDWSTC') {
-      endIdx = endIdx - 3;
-      break;
-    }
-    endIdx++;
-  }
+  // The namesize is the number of bytes given to the name of this chunky header
+  // Using this we calculate the offset where the meta data begins
+  const namesize = sgbBuffer.readInt32LE(headerOffset + 16);
+  const chunkOffset = headerOffset + 20 + namesize;
 
-  let midIdx = endIdx - 3;
-  while (true) {
-    if (mapBuffer[midIdx] === 0 && mapBuffer[midIdx + 1] === 0 && mapBuffer[midIdx + 2] === 0) {
-      break;
-    }
-    midIdx--;
-  }
+  const players = sgbBuffer.readInt32LE(chunkOffset);
+  const mapSize = sgbBuffer.readInt32LE(chunkOffset + 4);
+  const modNameSize = sgbBuffer.readInt32LE(chunkOffset + 8);
 
-  let startIdx = midIdx - 3;
-  while (true) {
-    if (mapBuffer[startIdx] === 0 && mapBuffer[startIdx + 1] === 0 && mapBuffer[startIdx + 2] === 0) {
-      break;
-    }
-    startIdx--;
-  }
+  const textOffset = chunkOffset + 12 + modNameSize;
 
-  // (1) There appears to be a leftover byte at the end. This is part of the 3 byte separator but I'm not sure what it indicates
-  // since it's a different value each time. It's easiest to just cut it off by subtracting 1.
-  // (2) The NULL bytes appear between each character so we remove them using regex replace.
-  const mapName = mapBuffer.slice(startIdx + 3, midIdx - 1).toString('utf8').replace(/\0/g, '');
-  const description = mapBuffer.slice(midIdx + 3, endIdx - 1).toString('utf8').replace(/\0/g, '');
+  // Multiply by 2 because it's refering to UTF-16 characters
+  const mapNameSize = sgbBuffer.readInt32LE(textOffset) * 2;
+  const mapNameOffset = textOffset + 4;
+  const mapName = sgbBuffer.toString('utf16le', mapNameOffset, mapNameOffset + mapNameSize);
 
-  return { name: mapName, description: description, players: players };
+  const mapDescSize = sgbBuffer.readIntLE(mapNameOffset + mapNameSize, 4) * 2;
+  const mapDescOffset = mapNameOffset + mapNameSize + 4;
+  const mapDesc = sgbBuffer.toString('utf16le', mapDescOffset, mapDescOffset + mapDescSize);
+
+  return { name: mapName, description: mapDesc, players: players, size: mapSize, pic: '' };
 }
 
 /**

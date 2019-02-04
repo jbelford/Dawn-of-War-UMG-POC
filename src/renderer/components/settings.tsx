@@ -38,9 +38,6 @@ export class Settings extends React.Component<any, SettingsState> {
 
   render() {
     const data = Soulstorm.getModData();
-    // console.log(Object.keys(data).reduce((prev: MapData[], key) => prev.concat(data[key].maps), [])
-    //   .sort((a, b) => a.players === b.players ? a.name.localeCompare(b.name) : a.players - b.players)
-    //   .filter((v, i, arr) => arr.slice(i + 1).every(x => x.name !== v.name)));
     console.log(data);
     return (
       <div className='container'>
