@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as ini from 'ini';
 import * as lua from 'luaparse';
-import * as NodeCache from 'node-cache';
 import * as path from 'path';
 import { AppData } from './appdata';
 import { LocalData } from './data';
@@ -9,18 +8,18 @@ import { MapData, Mod, WinCondition } from './types';
 
 export namespace Soulstorm {
 
-  const cache = new NodeCache({ stdTTL: 30 });
-
   let mods: Mod[];
+  let localeData: { [key: string]: string };
 
-  export function getModData(): Mod[] {
+  export async function getModData(): Promise<Mod[]> {
     if (!mods) {
-      mods = getModules()
-        .map(mod => ({
-          name: mod.name,
-          winConditions: getModWinConditions(mod),
-          maps: getModMaps(mod)
-        }));
+      mods = await Promise.all((await getModules())
+        .map(mod => Promise.all([getModWinConditions(mod), getModMaps(mod)])
+          .then<Mod>(results => ({
+            name: mod.name,
+            winConditions: results[0],
+            maps: results[1]
+          }))));
 
       mods = mergeDuplicates(mods);
 
@@ -39,7 +38,6 @@ export namespace Soulstorm {
 
       mods.unshift(w40kData);
     }
-
     return mods;
   }
 
@@ -56,90 +54,87 @@ export namespace Soulstorm {
     return Object.keys(data).map(key => data[key]);
   }
 
-  function getModules(): Module[] {
-    let modules = <Module[]>cache.get('modules');
-    if (!modules) {
-      const { dir } = AppData.getSettings();
-      modules = fs.readdirSync(dir, { withFileTypes: true })
-        .filter(file => file.isFile() && /\.module$/.test(file.name))
-        .map(file => path.join(dir, file.name))
-        .map(filepath => fs.readFileSync(filepath, 'utf8'))
-        .map(data => ini.parse(data).global)
-        .map(config => ({
-          name: config.UIName,
-          description: config.Description,
-          dllName: config.DllName,
-          modFolder: path.join(dir, config.ModFolder),
-          version: config.ModVersion,
-          textureFe: config.TextureFE,
-          dataFolders: Object.keys(config).filter(key => /^DataFolder\.\d+$/.test(key)).map(key => config[key]),
-          requiredMods: Object.keys(config).filter(key => /^RequiredMod\.\d+$/.test(key)).map(key => config[key])
-        }));
-      cache.set('modules', modules);
-      console.log(modules);
+  async function getModules(): Promise<Module[]> {
+    const { dir } = AppData.getSettings();
+    const files = fs.readdirSync(dir, { withFileTypes: true });
 
-      // A bit of goofy recursion happens here but whatever
-      modules.forEach(replaceLocales);
+    const readFilesPromise = files.filter(file => file.isFile() && /\.module$/.test(file.name))
+      .map(file => path.join(dir, file.name))
+      .map(filepath => readFilePromise(filepath, 'utf8'));
 
-    }
+    const moduleFileData = await Promise.all(readFilesPromise);
+    const modules = moduleFileData.map((data: string) => ini.parse(data).global)
+      .map(config => ({
+        name: config.UIName,
+        description: config.Description,
+        dllName: config.DllName,
+        modFolder: path.join(dir, config.ModFolder),
+        version: config.ModVersion,
+        textureFe: config.TextureFE,
+        dataFolders: Object.keys(config).filter(key => /^DataFolder\.\d+$/.test(key)).map(key => config[key]),
+        requiredMods: Object.keys(config).filter(key => /^RequiredMod\.\d+$/.test(key)).map(key => config[key])
+      }));
+
+    localeData = await getLocaleData(modules);
+
+    modules.forEach(replaceLocales);
+
     return modules;
   }
 
-  function getModWinConditions(mod: Module): WinCondition[] {
-    const key = `winconditions#${mod.name}`;
-    let winConditions = <WinCondition[]>cache.get(key);
-    if (!winConditions) {
-      const winConditionsPath = path.join(mod.modFolder, 'Data', 'scar', 'winconditions');
-      try {
-        winConditions = fs.readdirSync(winConditionsPath, { withFileTypes: true })
-          .filter(file => file.isFile() && /\.lua$/.test(file.name))
-          .map(file => path.join(winConditionsPath, file.name))
-          .map(filepath => lua.parse(fs.readFileSync(filepath, 'utf8')))
-          .map((data: any) => {
-            const body = data.body.find((body: any) => body.type === 'AssignmentStatement'
-              && body.variables.every((v: any) => v.type === 'Identifier' && v.name === 'Localization'));
-            if (!body) return null;
+  async function getModWinConditions(mod: Module): Promise<WinCondition[]> {
+    const winConditionsPath = path.join(mod.modFolder, 'Data', 'scar', 'winconditions');
+    let winConditions: WinCondition[];
+    try {
+      const wcFileData = await Promise.all(fs.readdirSync(winConditionsPath, { withFileTypes: true })
+        .filter(file => file.isFile() && /\.lua$/.test(file.name))
+        .map(file => path.join(winConditionsPath, file.name))
+        .map(filepath => readFilePromise(filepath, 'utf8')));
 
-            const init = body.init.find((init: any) => init.type === 'TableConstructorExpression');
-            if (!init) return null;
+      winConditions = wcFileData
+        .map((data: string) => lua.parse(data))
+        .map((data: any) => {
+          const body = data.body.find((body: any) => body.type === 'AssignmentStatement'
+            && body.variables.every((v: any) => v.type === 'Identifier' && v.name === 'Localization'));
+          if (!body) return null;
 
-            const values = {};
-            init.fields.forEach((field: any) => values[field.key.name] = field.value.value);
+          const init = body.init.find((init: any) => init.type === 'TableConstructorExpression');
+          if (!init) return null;
 
-            return replaceLocales(<WinCondition>{
-              title: values['title'],
-              description: values['description'],
-              victoryCondition: values['victory_condition'],
-              alwaysOn: values['always_on'],
-              exclusive: values['exclusive'],
-            });
-          })
-          .filter(wc => !!wc && !!wc.title && !!wc.title.trim()) as WinCondition[];
-      } catch (e) {
-        winConditions = [];
-      }
+          const values = {};
+          init.fields.forEach((field: any) => values[field.key.name] = field.value.value);
 
-      cache.set(key, winConditions);
+          return replaceLocales(<WinCondition>{
+            title: values['title'],
+            description: values['description'],
+            victoryCondition: values['victory_condition'],
+            alwaysOn: values['always_on'],
+            exclusive: values['exclusive'],
+          });
+        })
+        .filter(wc => !!wc && !!wc.title && !!wc.title.trim()) as WinCondition[];
+    } catch (e) {
+      winConditions = [];
     }
     return winConditions;
   }
 
-  function getModMaps(mod: Module): MapData[] {
+  async function getModMaps(mod: Module): Promise<MapData[]> {
     let maps: MapData[];
     try {
-      function readDir(dir: string): MapData[] {
+      async function readDir(dir: string): Promise<MapData[]> {
         const files = fs.readdirSync(dir, { withFileTypes: true });
 
-        const dirMaps = files.filter(file => file.isFile() && /\.sgb$/.test(file.name))
-          .map(file => readMap(path.join(dir, file.name)))
+        const dirMaps = (await Promise.all(files.filter(file => file.isFile() && /\.sgb$/.test(file.name))
+          .map(file => readMap(path.join(dir, file.name)))))
           .filter(map => !!map) as MapData[];
 
-        return files.filter(file => file.isDirectory())
-          .map(file => readDir(path.join(dir, file.name)))
+        return (await Promise.all(files.filter(file => file.isDirectory())
+          .map(file => readDir(path.join(dir, file.name)))))
           .reduce((prev, maps) => prev.concat(maps), dirMaps);
       }
 
-      maps = readDir(path.join(mod.modFolder, 'Data', 'scenarios', 'mp'));
+      maps = await readDir(path.join(mod.modFolder, 'Data', 'scenarios', 'mp'));
 
       maps.forEach(replaceLocales);
     } catch (e) {
@@ -148,7 +143,7 @@ export namespace Soulstorm {
     return maps;
   }
 
-  function readMap(filePath: string): MapData | null {
+  async function readMap(filePath: string): Promise<MapData | null> {
     const stripExt = filePath.replace(/\.sgb$/, '');
     let imagePath: string;
     if (fs.existsSync(stripExt + '_icon_custom.tga')) {
@@ -164,7 +159,7 @@ export namespace Soulstorm {
       return null;
     }
 
-    const mapDetails = getMapDetails(filePath);
+    const mapDetails = await getMapDetails(filePath);
     mapDetails.pic = imagePath;
 
     if (mapDetails.players < 2 || mapDetails.players > 8) {
@@ -181,7 +176,6 @@ export namespace Soulstorm {
       .filter(key => /^\$\d+$/.test(obj[key]));
 
     if (keys.length > 0) {
-      const localeData = getLocaleData();
       keys.forEach(key => {
         obj[key] = localeData[obj[key]];
       });
@@ -190,31 +184,48 @@ export namespace Soulstorm {
     return obj;
   }
 
-  function getLocaleData() {
-    let localeData = <{ [key: string]: string }>cache.get('localeData');
-    if (!localeData) {
-      localeData = {};
-      getModules().forEach(mod => {
-        const localePath = path.join(mod.modFolder, 'Locale', 'English');
-        try {
-          fs.readdirSync(localePath, { withFileTypes: true })
-            .filter(file => file.isFile() && /\.ucs$/.test(file.name))
-            .map(file => fs.readFileSync(path.join(localePath, file.name), { encoding: 'ucs2' }))
-            .forEach(data => {
-              data.split(/\n+/g)
-                .map(line => /^(\d+)\s+(.+)$/g.exec(line.trim()))
-                .filter(match => !!match)
-                .forEach((match: RegExpExecArray) => {
-                  localeData['$' + match[1]] = match[2];
-                });
-            });
-        } catch (e) {
-          // Do nothing
-        }
-      });
-      cache.set('localeData', localeData);
-    }
-    return localeData;
+  async function getLocaleData(mods: Module[]): Promise<{ [key: string]: string }> {
+    const locales = {};
+
+    const fileData = await Promise.all(mods.map(async mod => {
+      const localePath = path.join(mod.modFolder, 'Locale', 'English');
+      try {
+        const files = await readdirPromise(localePath);
+
+        return await Promise.all(files.filter(file => file.isFile() && /\.ucs$/.test(file.name))
+          .map(file => readFilePromise(path.join(localePath, file.name), 'ucs2')));
+      } catch (e) {
+        // Do nothing
+        return [];
+      }
+    })).then(result => result.reduce((prev, curr) => prev.concat(curr)));
+
+    fileData.forEach((data: string) => {
+      data.split(/\n+/g)
+        .map(line => /^(\d+)\s+(.+)$/g.exec(line.trim()))
+        .filter(match => !!match)
+        .forEach((match: RegExpExecArray) => {
+          locales['$' + match[1]] = match[2];
+        });
+    });
+
+    return locales;
+  }
+
+  function readdirPromise(path: string) {
+    return new Promise<fs.Dirent[]>((resolve, reject) => {
+      fs.readdir(path, { withFileTypes: true }, (err, files) => err ? reject(err) : resolve(files));
+    });
+  }
+
+  function readFilePromise(path: string, encoding?: string): Promise<string | Buffer> {
+    return new Promise((resolve, reject) => {
+      if (encoding) {
+        fs.readFile(path, { encoding: encoding }, (err, data) => err ? reject(err) : resolve(data));
+      } else {
+        fs.readFile(path, (err, data) => err ? reject(err) : resolve(data));
+      }
+    });
   }
 
 
@@ -239,8 +250,8 @@ export namespace Soulstorm {
    * 4 16-bit map description size
    * X byte description 
    */
-  function getMapDetails(filePath: string): MapData {
-    let sgbBuffer = fs.readFileSync(filePath);
+  async function getMapDetails(filePath: string): Promise<MapData> {
+    let sgbBuffer = await readFilePromise(filePath) as Buffer;
 
     // First we need to find the 'DATAWMHD' chunky type/id as this is where the metadata about the map is stored
     // I don't know if it's possible to find this without manually searching byte-by-byte
@@ -262,7 +273,7 @@ export namespace Soulstorm {
     const mapNameOffset = textOffset + 4;
     const mapName = sgbBuffer.toString('utf16le', mapNameOffset, mapNameOffset + mapNameSize);
 
-    const mapDescSize = sgbBuffer.readIntLE(mapNameOffset + mapNameSize, 4) * 2;
+    const mapDescSize = sgbBuffer.readInt32LE(mapNameOffset + mapNameSize) * 2;
     const mapDescOffset = mapNameOffset + mapNameSize + 4;
     const mapDesc = sgbBuffer.toString('utf16le', mapDescOffset, mapDescOffset + mapDescSize);
 

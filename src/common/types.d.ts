@@ -10,7 +10,7 @@ export type MapData = {
   name: string;
   description: string;
   players: number;
-  size?: number;
+  size: number;
   pic: string;
 };
 

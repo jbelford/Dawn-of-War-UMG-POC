@@ -37,8 +37,7 @@ export class Settings extends React.Component<any, SettingsState> {
   }
 
   render() {
-    const data = Soulstorm.getModData();
-    console.log(data);
+    Soulstorm.getModData().then(mods => console.log(mods));
     return (
       <div className='container'>
         <h1 className='display-4'>Settings</h1>
