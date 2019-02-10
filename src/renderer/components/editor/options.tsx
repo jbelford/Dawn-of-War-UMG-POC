@@ -8,7 +8,7 @@ type GameOptionsFormProps = {
   onChange: (options: GameOptions) => void;
 };
 
-export function GameOptionsForm(props: GameOptionsFormProps) {
+export default function GameOptionsForm(props: GameOptionsFormProps) {
 
   const onChange = (i: number, key: string) => {
     const options = props.options;

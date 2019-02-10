@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { CampaignForm } from './form';
+import CampaignForm from './form';
 
 type EditorState = {
   editorHeight: number,

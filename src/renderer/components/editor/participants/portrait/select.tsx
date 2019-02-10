@@ -1,59 +1,42 @@
-import * as React from 'react';
+import { useState } from 'react';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
 import { LocalData } from '../../../../../common/data';
 import { SelectFormGroup } from '../../../util/formgroup';
+const React = require('react');
 
-type Props = {
-  selected: { key: string, idx: number };
-  onChange: (key: string, idx: number) => void;
+const portraits = LocalData.getPortraits();
+const categories = ['Imperium', 'Chaos', 'Xenos'];
+const categoryKeyMap = {
+  'Imperium': 'imperium',
+  'Chaos': 'chaos',
+  'Xenos': 'xenos'
 };
 
-type State = {
-  selectedCategory: number;
-};
+type Props = { selected: { key: string, idx: number }, onChange: (key: string, idx: number) => void };
 
-export class PortraitSelect extends React.Component<Props, State> {
+export default function PortraitSelect({ selected, onChange }: Props) {
+  const [categoryIdx, setCategoryIdx] = useState(Object.keys(categoryKeyMap)
+    .findIndex(key => categoryKeyMap[key] === selected.key));
 
-  private portraits = LocalData.getPortraits();
-  private categories = ['Imperium', 'Chaos', 'Xenos'];
+  const category = categories[categoryIdx];
+  const key = categoryKeyMap[category];
+  const categoryPortraits: string[] = portraits[key];
+  const portrait = portraits[selected.key][selected.idx];
 
-  private categoryKeyMap = {
-    'Imperium': 'imperium',
-    'Chaos': 'chaos',
-    'Xenos': 'xenos'
-  };
-
-  constructor(props: any) {
-    super(props);
-    this.state = {
-      selectedCategory: Object.keys(this.categoryKeyMap)
-        .findIndex(key => this.categoryKeyMap[key] === this.props.selected.key)
-    };
-  }
-
-  onCategoryChange = (i: number) => {
-    this.setState({ ...this.state, selectedCategory: i });
-  }
-
-  render() {
-    const category = this.categories[this.state.selectedCategory];
-    const key = this.categoryKeyMap[category];
-    const categoryPortraits: string[] = this.portraits[key];
-    const portrait = this.portraits[this.props.selected.key][this.props.selected.idx];
-
-    return <Row>
+  return (
+    <Row>
       <Col className='overflow-auto pt-2'>
         <SelectFormGroup
-          options={this.categories}
-          onChange={this.onCategoryChange}
-          value={this.state.selectedCategory}
+          options={categories}
+          onChange={setCategoryIdx}
+          value={categoryIdx}
         />
         {categoryPortraits.map((portrait, i) => (
           <img key={i}
             className='img-thumbnail w-25 cursor-pointer'
             src={portrait}
-            onClick={() => this.props.onChange(key, i)} />
+            onClick={() => onChange(key, i)} />
         ))}
       </Col>
       <Col xs={4}>
@@ -63,8 +46,7 @@ export class PortraitSelect extends React.Component<Props, State> {
           className='img-thumbnail'
           alt='Portrait Image' />
       </Col>
-    </Row>;
-  }
-
+    </Row>
+  );
 }
 

@@ -5,7 +5,7 @@ import ModalBody from 'reactstrap/lib/ModalBody';
 import ModalFooter from 'reactstrap/lib/ModalFooter';
 import ModalHeader from 'reactstrap/lib/ModalHeader';
 import { LocalData } from '../../../../../common/data';
-import { PortraitSelect } from './select';
+import PortraitSelect from './select';
 
 type Props = {
   portrait: string;

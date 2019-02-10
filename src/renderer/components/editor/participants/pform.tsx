@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { createRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from 'reactstrap';
 import Col from 'reactstrap/lib/Col';
@@ -7,7 +7,8 @@ import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
 import Row from 'reactstrap/lib/Row';
 import { Participant, Team } from '../../../../typings/campaign';
-import { PortraitModal } from './portrait/modal';
+import PortraitModal from './portrait/modal';
+const React = require('react');
 
 type ParticipantFormProps = {
   participant: Participant;
@@ -17,76 +18,53 @@ type ParticipantFormProps = {
   onDelete: () => void;
 };
 
-type ParticipantFormState = {
-  locked: boolean;
-  portraitModal: boolean;
-};
+export default function ParticipantForm({ participant, teams, showDelete, onChange, onDelete }: ParticipantFormProps) {
+  const [locked, setLocked] = useState(true);
+  const modalRef = createRef<PortraitModal>();
 
-export class ParticipantForm extends React.Component<ParticipantFormProps, ParticipantFormState> {
+  const toggleModal = () => modalRef.current && modalRef.current.toggle();
 
-  private modalRef: React.RefObject<PortraitModal>;
+  const toggleLock = () => setLocked(!locked);
 
-  constructor(props: any) {
-    super(props);
-    this.state = { locked: true, portraitModal: false };
-    this.modalRef = React.createRef();
-  }
-
-  private handleParticipantChange = (key: string, value: any) => {
-    const participant = this.props.participant;
-    participant[key] = value;
-    this.props.onChange(participant);
-  }
-
-  private toggleLock = () => {
-    this.setState({ ...this.state, locked: !this.state.locked });
-  }
-
-  private toggleModal = () => {
-    if (this.modalRef.current) {
-      this.modalRef.current.toggle();
-    }
-  }
-
-  render() {
-    return <Row>
+  return (
+    <Row>
       <PortraitModal
-        ref={this.modalRef}
-        onSave={p => this.handleParticipantChange('portrait', p)}
-        portrait={this.props.participant.portrait}
-        disabled={this.state.locked} />
+        ref={modalRef}
+        onSave={p => onChange({ ...participant, portrait: p })}
+        portrait={participant.portrait}
+        disabled={locked} />
       <Col xs={3}>
         <img
-          src={this.props.participant.portrait}
+          src={participant.portrait}
           className='img-thumbnail cursor-pointer'
           alt='Portrait Image'
           title='Click to choose portrait'
-          onClick={this.toggleModal} />
+          onClick={toggleModal} />
       </Col>
       <Col>
         <FormGroup>
           <Label>Army</Label>
           <Input type='text'
             placeholder='What is the name of the army? (Ex: Blood Angels)'
-            value={this.props.participant.army}
-            onChange={(e) => this.handleParticipantChange('army', e.target.value)}
-            disabled={this.state.locked} />
+            value={participant.army}
+            onChange={(e) => onChange({ ...participant, army: e.target.value })}
+            disabled={locked} />
         </FormGroup>
         <FormGroup>
           <Label>Race</Label>
           <Input type='text'
             placeholder='What race is this participant? (Ex: Space Marines)'
-            value={this.props.participant.race}
-            onChange={(e) => this.handleParticipantChange('race', e.target.value)}
-            disabled={this.state.locked} />
+            value={participant.race}
+            onChange={(e) => onChange({ ...participant, race: e.target.value })}
+            disabled={locked} />
         </FormGroup>
         <FormGroup>
           <Label>Team</Label>
           <Input type='select'
-            value={this.props.participant.team}
-            disabled={this.state.locked}
-            onChange={(e) => this.handleParticipantChange('team', +e.target.value)}>
-            {this.props.teams.map((team, i) => (
+            value={participant.team}
+            disabled={locked}
+            onChange={(e) => onChange({ ...participant, team: +e.target.value })}>
+            {teams.map((team, i) => (
               <option value={team.id} key={i}>
                 {team.name.trim() ? `Team ${i + 1}: ${team.name.trim()}` : `Team ${i + 1}: <Team-${i + 1}>`}
               </option>
@@ -100,23 +78,22 @@ export class ParticipantForm extends React.Component<ParticipantFormProps, Parti
             minRows={2}
             maxRows={10}
             placeholder='Who are they? Why are they involved in this campaign?'
-            value={this.props.participant.about} onChange={(e) => this.handleParticipantChange('about', e.target.value)}
-            disabled={this.state.locked} />
+            value={participant.about} onChange={(e) => onChange({ ...participant, about: e.target.value })}
+            disabled={locked} />
         </FormGroup>
         <div>
           <Button
-            color={this.state.locked ? 'dark' : 'primary'}
-            onClick={this.toggleLock}
+            color={locked ? 'dark' : 'primary'}
+            onClick={toggleLock}
             style={{ width: '75px' }}>
-            {this.state.locked ? 'Unlock' : 'Lock'}
+            {locked ? 'Unlock' : 'Lock'}
           </Button>
-          {this.props.showDelete && <Button color='danger' className='ml-2 float-right'
-            onClick={this.props.onDelete}
+          {showDelete && <Button color='danger' className='ml-2 float-right'
+            onClick={onDelete}
             style={{ width: '75px' }}
-            disabled={this.state.locked}>Delete</Button>}
+            disabled={locked}>Delete</Button>}
         </div>
       </Col>
-    </Row>;
-  }
-
+    </Row>
+  );
 }
