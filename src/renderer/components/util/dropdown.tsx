@@ -11,14 +11,15 @@ type DropdownProps = {
   color?: string;
   onSelect: (selected: number) => void;
   children?: ReactNode;
+  disabled?: boolean;
 };
 
-export default function Dropdown({ options, color, onSelect, children }: DropdownProps) {
+export default function Dropdown({ options, color, onSelect, children, disabled }: DropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleIsOpen = () => setIsOpen(!isOpen);
   return (
     <ButtonDropdown direction='down' isOpen={isOpen} toggle={toggleIsOpen}>
-      <DropdownToggle color={color} caret>
+      <DropdownToggle color={color} caret disabled={disabled}>
         {children}
       </DropdownToggle>
       <DropdownMenu>
