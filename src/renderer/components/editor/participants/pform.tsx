@@ -1,4 +1,4 @@
-import { createRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from 'reactstrap';
 import Col from 'reactstrap/lib/Col';
@@ -20,8 +20,9 @@ type ParticipantFormProps = {
 
 export default function ParticipantForm({ participant, teams, showDelete, onChange, onDelete }: ParticipantFormProps) {
   const [locked, setLocked] = useState(true);
-  const modalRef = createRef<PortraitModal>();
+  const modalRef = useRef(null);
 
+  // @ts-ignore
   const toggleModal = () => modalRef.current && modalRef.current.toggle();
 
   const toggleLock = () => setLocked(!locked);

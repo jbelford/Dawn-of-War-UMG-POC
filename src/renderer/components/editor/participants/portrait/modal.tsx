@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { forwardRef, Ref, useImperativeHandle, useState } from 'react';
 import Button from 'reactstrap/lib/Button';
 import Modal from 'reactstrap/lib/Modal';
 import ModalBody from 'reactstrap/lib/ModalBody';
@@ -6,68 +6,49 @@ import ModalFooter from 'reactstrap/lib/ModalFooter';
 import ModalHeader from 'reactstrap/lib/ModalHeader';
 import { LocalData } from '../../../../../common/data';
 import PortraitSelect from './select';
+const React = require('react');
 
-type Props = {
-  portrait: string;
-  disabled?: boolean;
-  onSave: (portrait: string) => void;
-};
+const portraits = LocalData.getPortraits();
 
-type State = {
-  modal: boolean;
-  selected: { key: string, idx: number };
-};
+function getPortraitSelected(portrait: string): { key: string, idx: number } {
+  return Object.keys(portraits).map(key => ({
+    key: key,
+    idx: portraits[key].findIndex((p: string) => p === portrait)
+  })).find(portraits => portraits.idx >= 0) as any;
+}
 
-export class PortraitModal extends React.Component<Props, State> {
+type PortraitModalProps = { portrait: string, disabled?: boolean, onSave: (portrait: string) => void };
 
-  private portraits = LocalData.getPortraits();
+const PortraitModal = forwardRef(function ({ portrait, disabled, onSave }: PortraitModalProps, ref: Ref<any>) {
+  const [modal, setModal] = useState(false);
+  const [selected, setSelected] = useState(getPortraitSelected(portrait));
 
-  constructor(props: any) {
-    super(props);
-    this.state = { modal: false, selected: this.getPortraitSelected(this.props.portrait) };
+  const toggle = () => setModal(!modal);
+
+  function save() {
+    const portrait = portraits[selected.key][selected.idx];
+    onSave(portrait);
+    toggle();
   }
 
-  public toggle = () => {
-    const newModal = !this.state.modal;
-    let selected = this.state.selected;
-    if (newModal) {
-      selected = this.getPortraitSelected(this.props.portrait);
-    }
-    this.setState({ ...this.state, modal: newModal, selected: selected });
-  }
+  useImperativeHandle(ref, () => ({ toggle: toggle }));
 
-  private getPortraitSelected(portrait: string): { key: string, idx: number } {
-    return Object.keys(this.portraits).map(key => ({
-      key: key,
-      idx: this.portraits[key].findIndex((p: string) => p === portrait)
-    })).find(portraits => portraits.idx >= 0) as any;
-  }
-
-
-  private onChange = (key: string, idx: number) => {
-    this.setState({ ...this.state, selected: { key: key, idx: idx } });
-  }
-
-  private save = () => {
-    const portrait = this.portraits[this.state.selected.key][this.state.selected.idx];
-    this.props.onSave(portrait);
-    this.toggle();
-  }
-
-  render() {
-    return <Modal
-      isOpen={this.state.modal}
-      toggle={this.toggle}>
-      <ModalHeader toggle={this.toggle}>Choose a Portrait</ModalHeader>
+  return (
+    <Modal
+      isOpen={modal}
+      toggle={toggle}>
+      <ModalHeader toggle={toggle}>Choose a Portrait</ModalHeader>
       <ModalBody>
         <PortraitSelect
-          selected={this.state.selected}
-          onChange={this.onChange} />
+          selected={selected}
+          onChange={(key, idx) => setSelected({ key: key, idx: idx })} />
       </ModalBody>
       <ModalFooter>
-        <Button color='secondary' onClick={this.toggle}>Cancel</Button>
-        <Button color='primary' onClick={this.save} disabled={this.props.disabled}>Save</Button>
+        <Button color='secondary' onClick={toggle}>Cancel</Button>
+        <Button color='primary' onClick={save} disabled={disabled}>Save</Button>
       </ModalFooter>
-    </Modal>;
-  }
-}
+    </Modal>
+  );
+});
+
+export default PortraitModal;

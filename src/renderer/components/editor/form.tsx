@@ -54,6 +54,7 @@ export default function CampaignForm({ className, style }: CampaignFormProps) {
   useEffect(() => setChanged(true), [campaign]);
 
   return (
+    // @ts-ignore
     <Form className={className} style={style}>
       <FormGroup>
         <Label>Campaign Title</Label>
