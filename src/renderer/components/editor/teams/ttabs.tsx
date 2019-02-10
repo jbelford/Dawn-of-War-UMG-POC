@@ -1,3 +1,4 @@
+import classnames from 'classnames';
 import * as React from 'react';
 import Button from 'reactstrap/lib/Button';
 import Fade from 'reactstrap/lib/Fade';
@@ -7,8 +8,7 @@ import NavLink from 'reactstrap/lib/NavLink';
 import TabContent from 'reactstrap/lib/TabContent';
 import TabPane from 'reactstrap/lib/TabPane';
 import { Participant, Team } from '../../../../typings/campaign';
-import { TeamTabsForm } from './tform';
-import classnames = require('classnames');
+import TeamTabsForm from './tform';
 
 type TeamTabsProps = {
   teams: Team[];

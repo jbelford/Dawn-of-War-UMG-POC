@@ -82,6 +82,30 @@ export namespace Soulstorm {
     return modules;
   }
 
+  async function getLocaleData(mods: Module[]): Promise<{ [key: string]: string }> {
+    const locales = {};
+
+    (await Promise.all(mods.map(async mod => {
+      const localePath = path.join(mod.modFolder, 'Locale', 'English');
+      try {
+        const files = await readdirPromise(localePath);
+
+        return await Promise.all(files.filter(file => file.isFile() && /\.ucs$/.test(file.name))
+          .map(file => readFilePromise(path.join(localePath, file.name), 'ucs2')));
+      } catch (e) {
+        // Do nothing
+        return [];
+      }
+    }))).join('\n')
+      .split(/\n+/g)
+      .map(line => /^(\d+)\s+(.+)$/g.exec(line.trim()))
+      .filter(match => !!match)
+      .forEach((match: RegExpExecArray) => locales['$' + match[1]] = match[2]);
+
+    return locales;
+  }
+
+
   async function getModWinConditions(mod: Module): Promise<WinCondition[]> {
     const winConditionsPath = path.join(mod.modFolder, 'Data', 'scar', 'winconditions');
     let winConditions: WinCondition[];
@@ -182,34 +206,6 @@ export namespace Soulstorm {
     }
 
     return obj;
-  }
-
-  async function getLocaleData(mods: Module[]): Promise<{ [key: string]: string }> {
-    const locales = {};
-
-    const fileData = await Promise.all(mods.map(async mod => {
-      const localePath = path.join(mod.modFolder, 'Locale', 'English');
-      try {
-        const files = await readdirPromise(localePath);
-
-        return await Promise.all(files.filter(file => file.isFile() && /\.ucs$/.test(file.name))
-          .map(file => readFilePromise(path.join(localePath, file.name), 'ucs2')));
-      } catch (e) {
-        // Do nothing
-        return [];
-      }
-    })).then(result => result.reduce((prev, curr) => prev.concat(curr)));
-
-    fileData.forEach((data: string) => {
-      data.split(/\n+/g)
-        .map(line => /^(\d+)\s+(.+)$/g.exec(line.trim()))
-        .filter(match => !!match)
-        .forEach((match: RegExpExecArray) => {
-          locales['$' + match[1]] = match[2];
-        });
-    });
-
-    return locales;
   }
 
   function readdirPromise(path: string) {

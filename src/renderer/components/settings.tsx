@@ -1,7 +1,10 @@
 import { remote } from 'electron';
-import * as React from 'react';
+import * as fs from 'fs';
+import * as path from 'path';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Button from 'reactstrap/lib/Button';
+import Container from 'reactstrap/lib/Container';
 import Form from 'reactstrap/lib/Form';
 import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
@@ -9,65 +12,82 @@ import InputGroup from 'reactstrap/lib/InputGroup';
 import InputGroupAddon from 'reactstrap/lib/InputGroupAddon';
 import Label from 'reactstrap/lib/Label';
 import { AppData, UserSettings } from '../../common/appdata';
-import { Soulstorm } from '../../common/soulstorm';
+const React = require('react');
 const { dialog } = remote;
 
-export class Settings extends React.Component<any, SettingsState> {
+const validateDir = (dir: string) => fs.existsSync(path.join(dir, 'W40K.exe'));
 
-  constructor(props: any) {
-    super(props);
-    this.state = { settings: AppData.getSettings(), changed: false, isValid: true };
+function getInitialState(): { settings: UserSettings, changed: boolean, validation: { dir: boolean } } {
+  const settings = AppData.getSettings();
+  return { settings: settings, changed: false, validation: { dir: validateDir(settings.dir) } };
+}
+
+export default function Settings() {
+  const [state, setState] = useState(getInitialState());
+
+  function onSubmit() {
+    AppData.saveSettings(state.settings);
+    setState({ ...state, changed: false });
   }
 
-  selectFolder = (e: React.MouseEvent) => {
-    e.preventDefault();
+  function setDir(dir: string) {
+    setState({
+      ...state,
+      settings: { ...state.settings, dir: dir },
+      validation: { ...state.validation, dir: validateDir(dir) },
+      changed: true
+    });
+  }
+
+  return (
+    <Container>
+      <h1 className='display-4'>Settings</h1>
+      <Form onSubmit={onSubmit} className='d-flex flex-column'>
+        <SelectDirFormGroup dir={state.settings.dir} isValid={state.validation.dir} onSelect={setDir} />
+        <SubmitButtons className='align-self-end' changed={state.changed} isValid={state.validation.dir} />
+      </Form>
+    </Container>
+  );
+}
+
+type SelectDirFormGroupProps = { dir: string, isValid: boolean, onSelect: (dir: string) => void };
+
+function SelectDirFormGroup({ dir, isValid, onSelect }: SelectDirFormGroupProps) {
+  function selectDir() {
     const directories = dialog.showOpenDialog({ properties: ['openDirectory'] });
-    if (directories.length) {
-      if (directories[0] !== this.state.settings.dir) {
-        const newSettings = { ...this.state.settings, dir: directories[0] };
-        this.setState({ settings: newSettings, changed: true, isValid: AppData.validateSettings(newSettings) });
-      }
+    if (directories.length && directories[0] !== dir) {
+      onSelect(directories[0]);
     }
   }
 
-  onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    AppData.saveSettings(this.state.settings);
-    this.setState({ ...this.state, changed: false });
-  }
-
-  render() {
-    Soulstorm.getModData().then(mods => console.log(mods));
-    return (
-      <div className='container'>
-        <h1 className='display-4'>Settings</h1>
-        <Form onSubmit={this.onSubmit} className='d-flex flex-column'>
-          <FormGroup>
-            <Label>Dawn of War Directory :</Label>
-            <InputGroup>
-              <InputGroupAddon addonType='prepend'><Button onClick={this.selectFolder}>📁</Button></InputGroupAddon>
-              <Input placeholder='Select Directory...' value={this.state.settings.dir} readOnly
-                valid={this.state.isValid}
-                invalid={!this.state.isValid} />
-            </InputGroup>
-          </FormGroup>
-          <div className='align-self-end'>
-            <Link to='/' className='btn btn-primary'>Go Back</Link>
-            <Button type='submit'
-              className='ml-2'
-              disabled={!this.state.changed || !this.state.isValid}>
-              {this.state.changed ? 'Save Changes' : 'Saved'}
-            </Button>
-          </div>
-        </Form>
-      </div>
-    );
-  }
-
+  return (
+    <FormGroup>
+      <Label>Dawn of War Directory :</Label>
+      <InputGroup>
+        <InputGroupAddon addonType='prepend'>
+          <Button onClick={selectDir}>📁</Button>
+        </InputGroupAddon>
+        <Input readOnly
+          placeholder='Select Directory...'
+          value={dir}
+          valid={isValid}
+          invalid={!isValid} />
+      </InputGroup>
+    </FormGroup>
+  );
 }
 
-type SettingsState = {
-  settings: UserSettings;
-  changed: boolean;
-  isValid: boolean;
-};
+type SubmitButtonsProps = { className?: string, changed: boolean, isValid: boolean };
+
+function SubmitButtons({ className, changed, isValid }: SubmitButtonsProps) {
+  return (
+    <div className={className}>
+      <Link to='/' className='btn btn-primary'>Go Back</Link>
+      <Button type='submit'
+        className='ml-2'
+        disabled={!changed || !isValid}>
+        {changed ? 'Save Changes' : 'Saved'}
+      </Button>
+    </div>
+  );
+}

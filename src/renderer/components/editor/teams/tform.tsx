@@ -1,4 +1,5 @@
-import * as React from 'react';
+const React = require('react');
+import { useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import Button from 'reactstrap/lib/Button';
 import Col from 'reactstrap/lib/Col';
@@ -20,37 +21,20 @@ type TeamTabsFormProps = {
   onDelete: () => void;
 };
 
-type TeamTabsFormState = {
-  locked: boolean;
-};
+export default function TeamTabsForm({ team, participants, showDelete, onChange, onDelete }: TeamTabsFormProps) {
+  const [locked, setLocked] = useState(true);
 
-export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFormState> {
+  const toggleLock = () => setLocked(!locked);
 
-  constructor(props: any) {
-    super(props);
-    this.state = { locked: true };
-  }
-
-
-  private handleTeamChange = (key: string, value: string) => {
-    const team = this.props.team;
-    team[key] = value;
-    this.props.onChange(team);
-  }
-
-  private toggleLock = () => {
-    this.setState({ ...this.state, locked: !this.state.locked });
-  }
-
-  render() {
-    return <Row>
+  return (
+    <Row>
       <Col className='d-flex flex-column' sm={8}>
         <FormGroup>
           <Label>Name</Label>
           <Input type='text' placeholder='What is the name of this team?'
-            value={this.props.team.name}
-            onChange={(e) => this.handleTeamChange('name', e.target.value)}
-            disabled={this.state.locked} />
+            value={team.name}
+            onChange={(e) => onChange({ ...team, name: e.target.value })}
+            disabled={locked} />
         </FormGroup>
         <FormGroup>
           <Label>About</Label>
@@ -58,42 +42,45 @@ export class TeamTabsForm extends React.Component<TeamTabsFormProps, TeamTabsFor
             minRows={2}
             maxRows={10}
             placeholder='What is the goal of this team? Why are they involved? Why are they allied?'
-            value={this.props.team.about}
-            onChange={(e) => this.handleTeamChange('about', e.target.value)}
-            disabled={this.state.locked} />
+            value={team.about}
+            onChange={(e) => onChange({ ...team, about: e.target.value })}
+            disabled={locked} />
         </FormGroup>
         <div>
-          <Button color={this.state.locked ? 'dark' : 'primary'}
-            onClick={this.toggleLock}
+          <Button color={locked ? 'dark' : 'primary'}
+            onClick={toggleLock}
             style={{ width: '75px' }}>
-            {this.state.locked ? 'Unlock' : 'Lock'}
+            {locked ? 'Unlock' : 'Lock'}
           </Button>
-          {this.props.showDelete
+          {showDelete
             && <Button color='danger' className='ml-2 float-right'
-              onClick={this.props.onDelete}
+              onClick={onDelete}
               style={{ width: '75px' }}
-              disabled={this.state.locked}>Delete</Button>}
+              disabled={locked}>Delete</Button>}
         </div>
       </Col>
-      <ParticipantsList participants={this.props.participants} teamId={this.props.team.id} />
-    </Row>;
-  }
-
+      <ParticipantsList participants={participants} teamId={team.id} />
+    </Row>
+  );
 }
+
+
 
 function ParticipantsList(props: { participants: Participant[], teamId: number }) {
   const participants = props.participants.map((p, i) => ({ ...p, i: i }))
     .filter(p => p.team === props.teamId);
-  return <Col sm={4}>
-    <ListGroup>
-      <Label>Armies</Label>
-      {!participants.length && <p>No armies assigned!</p>}
-      {participants.map((p) => {
-        return <ListGroupItem key={p.id}>
-          <ListGroupItemHeading>{p.army.trim() ? p.army.trim() : `<Army-${p.i + 1}>`}</ListGroupItemHeading>
-          {p.race.trim() && <ListGroupItemText><i>{p.race.trim()}</i></ListGroupItemText>}
-        </ListGroupItem>;
-      })}
-    </ListGroup>
-  </Col>;
+  return (
+    <Col sm={4}>
+      <ListGroup>
+        <Label>Armies</Label>
+        {!participants.length && <p>No armies assigned!</p>}
+        {participants.map((p) => {
+          return <ListGroupItem key={p.id}>
+            <ListGroupItemHeading>{p.army.trim() ? p.army.trim() : `<Army-${p.i + 1}>`}</ListGroupItemHeading>
+            {p.race.trim() && <ListGroupItemText><i>{p.race.trim()}</i></ListGroupItemText>}
+          </ListGroupItem>;
+        })}
+      </ListGroup>
+    </Col>
+  );
 }

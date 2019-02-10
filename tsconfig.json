@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
-    "removeComments": false,
-    "preserveConstEnums": true,
+    "removeComments": true,
+    "preserveConstEnums": false,
     "sourceMap": true,
     "declaration": false,
-    "noImplicitAny": true,
+    "noImplicitAny": false,
     "noImplicitReturns": true,
     "suppressImplicitAnyIndexErrors": true,
     "strictNullChecks": true,
