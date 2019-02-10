@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Container from 'reactstrap/lib/Container';
 import CampaignForm from './form';
 const React = require('react');
 
@@ -14,14 +15,16 @@ export default function CampaignEditor() {
   }, [window.innerHeight]);
 
   return (
-    <div className='container'>
+    <div>
       <div ref={headerRef} className='lead text-center'>
         <h1 className='display-4'>Campaign Editor</h1>
         <p>On this screen you can setup or edit a campaign.</p>
       </div>
-      <CampaignForm
-        className='overflow-auto pl-2 pr-2'
-        style={{ height: editorHeight, paddingBottom: '200px' }} />
+      <div className='overflow-auto' style={{ height: editorHeight, paddingBottom: '200px' }}>
+        <Container>
+          <CampaignForm />
+        </Container>
+      </div>
     </div>
   );
 }
