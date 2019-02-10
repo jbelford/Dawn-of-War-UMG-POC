@@ -13,6 +13,7 @@ export namespace Soulstorm {
 
   export async function getModData(): Promise<Mod[]> {
     if (!mods) {
+      const startDate = Date.now();
       mods = await Promise.all((await getModules())
         .map(mod => Promise.all([getModWinConditions(mod), getModMaps(mod)])
           .then<Mod>(results => ({
@@ -37,7 +38,9 @@ export namespace Soulstorm {
       mods = mods.filter(mod => mod.winConditions.length + mod.maps.length > 0);
 
       mods.unshift(w40kData);
+      console.log(`Fetch time: ${Date.now() - startDate} ms`);
     }
+    console.log(mods);
     return mods;
   }
 
@@ -169,22 +172,26 @@ export namespace Soulstorm {
 
   async function readMap(filePath: string): Promise<MapData | null> {
     const stripExt = filePath.replace(/\.sgb$/, '');
-    let imagePath: string;
-    if (fs.existsSync(stripExt + '_icon_custom.tga')) {
-      imagePath = stripExt + '_icon_custom.tga';
-    } else if (fs.existsSync(stripExt + '_icon.tga')) {
-      imagePath = stripExt + '_icon.tga';
-    } else if (fs.existsSync(stripExt + '.tga')) {
-      imagePath = stripExt + '.tga';
-    } else if (fs.existsSync(stripExt + '_mm.tga')) {
-      imagePath = stripExt + '_mm.tga';
-    } else {
+    const imagePath = await existsPromise(stripExt + '_icon_custom.tga')
+      .catch(() => existsPromise(stripExt + '_icon.tga'))
+      .catch(() => existsPromise(stripExt + '.tga'))
+      .catch(() => existsPromise(stripExt + '_mm.tga'))
+      .catch(() => null);
+
+    if (imagePath === null) {
       console.log(`Probably not valid: ${filePath}`);
       return null;
     }
 
-    const mapDetails = await getMapDetails(filePath);
-    mapDetails.pic = imagePath;
+    let mapDetails: MapData;
+    try {
+      const sgbBuffer = await readFilePromise(filePath) as Buffer;
+      mapDetails = getMapDetails(sgbBuffer);
+      mapDetails.pic = imagePath;
+    } catch (e) {
+      console.log(`Failed to read map data: ${e.stack || e}`);
+      return null;
+    }
 
     if (mapDetails.players < 2 || mapDetails.players > 8) {
       console.log(`Ignoring bad file: ${filePath}`);
@@ -224,6 +231,12 @@ export namespace Soulstorm {
     });
   }
 
+  function existsPromise(path: string): Promise<string> {
+    return new Promise((resolve, reject) => {
+      fs.exists(path, exists => exists ? resolve(path) : reject());
+    });
+  }
+
 
   /**
    * Chunky files are LITTLE-ENDIAN
@@ -246,12 +259,17 @@ export namespace Soulstorm {
    * 4 16-bit map description size
    * X byte description 
    */
-  async function getMapDetails(filePath: string): Promise<MapData> {
-    let sgbBuffer = await readFilePromise(filePath) as Buffer;
+  function getMapDetails(sgbBuffer: Buffer): MapData {
+    if (sgbBuffer.toString('utf8', 0, 12) !== 'Relic Chunky') {
+      throw 'Buffer is not a relic chunky';
+    }
 
     // First we need to find the 'DATAWMHD' chunky type/id as this is where the metadata about the map is stored
     // I don't know if it's possible to find this without manually searching byte-by-byte
-    const headerOffset = sgbBuffer.indexOf('DATAWMHD', 11, 'utf8');
+    const headerOffset = sgbBuffer.indexOf('DATAWMHD', 12, 'utf8');
+    if (headerOffset < 0) {
+      throw 'Buffer is not a valid SGB';
+    }
 
     // The namesize is the number of bytes given to the name of this chunky header
     // Using this we calculate the offset where the meta data begins
