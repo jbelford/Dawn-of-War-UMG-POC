@@ -27,7 +27,7 @@ export default function Menu() {
 
   useEffect(() => {
     if (loading) {
-      Soulstorm.getModData().then(() => setLoading(false));
+      Soulstorm.loadModData().then(() => setLoading(false));
     }
   }, [loading]);
 

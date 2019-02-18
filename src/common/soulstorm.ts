@@ -11,7 +11,7 @@ export namespace Soulstorm {
   let mods: Mod[];
   let localeData: { [key: string]: string };
 
-  export async function getModData(): Promise<Mod[]> {
+  export async function loadModData(): Promise<Mod[]> {
     if (!mods) {
       const startDate = Date.now();
       mods = await Promise.all((await getModules())
@@ -41,6 +41,16 @@ export namespace Soulstorm {
       console.log(`Fetch time: ${Date.now() - startDate} ms`);
     }
     console.log(mods);
+    return mods;
+  }
+
+  /**
+   * This will throw an error if mod data has not yet been loaded into memory.
+   */
+  export function getModData() {
+    if (!mods) {
+      throw 'Attempted to fetch mod data before loading into memory';
+    }
     return mods;
   }
 

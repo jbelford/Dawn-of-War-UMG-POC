@@ -5,9 +5,15 @@ export type Campaign = {
   teams: Team[];
   missions: Mission[];
   gameOptions: GameOptions;
-  gameRules: string[];
+  gameRules: GameRule[];
   customRules: string;
   loseRules: LoseMission;
+};
+
+type GameRule = {
+  mod: string;
+  title: string;
+  victoryCondition: boolean;
 };
 
 type Team = {

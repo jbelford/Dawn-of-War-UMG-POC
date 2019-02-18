@@ -14,6 +14,7 @@ import { LocalData } from '../../../common/data';
 import { Campaign, GameDiff, GameResourceRate, GameSpeed, GameStartResource } from '../../../typings/campaign';
 import GameOptionsForm from './options';
 import ParticipantTabs from './participants/ptabs';
+import GameRules from './rules/gamerules';
 import TeamTabs from './teams/ttabs';
 const React = require('react');
 
@@ -37,7 +38,7 @@ function getInitialCampaign(): Campaign {
       gameSpeed: GameSpeed.ANY,
       resourceRate: GameResourceRate.ANY
     },
-    gameRules: [],
+    gameRules: [{ mod: 'Vanilla', title: 'Destroy HQ', victoryCondition: true }],
     customRules: '',
     loseRules: {
       ironman: false
@@ -94,9 +95,14 @@ export default function CampaignForm({ className, style }: CampaignFormProps) {
           options={campaign.gameOptions}
           onChange={gameOptions => setCampaign({ ...campaign, gameOptions })} />
       </CardFormGroup>
-      <FormGroup>
-        <Label>Global Game Rules</Label>
-      </FormGroup>
+      <CardFormGroup
+        title='Global Game Rules'
+        details='These are the victory conditions and addons that should be applied across all missions unless overriden.'>
+        <GameRules
+          className='p-3'
+          rules={campaign.gameRules}
+          onChange={() => null} />
+      </CardFormGroup>
       <FormGroup>
         <Label>Lose Rules</Label>
       </FormGroup>
