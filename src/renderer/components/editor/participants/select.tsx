@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Col from 'reactstrap/lib/Col';
 import Row from 'reactstrap/lib/Row';
-import { LocalData } from '../../../../../common/data';
-import { SelectFormGroup } from '../../../util/formgroup';
+import { LocalData } from '../../../../common/data';
+import { SelectFormGroup } from '../../util/formgroup';
 const React = require('react');
 
 const portraits = LocalData.getPortraits();

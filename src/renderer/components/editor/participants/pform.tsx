@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { Button } from 'reactstrap';
 import Col from 'reactstrap/lib/Col';
@@ -6,8 +6,10 @@ import FormGroup from 'reactstrap/lib/FormGroup';
 import Input from 'reactstrap/lib/Input';
 import Label from 'reactstrap/lib/Label';
 import Row from 'reactstrap/lib/Row';
+import { Subject } from 'rxjs';
 import { Participant, Team } from '../../../../typings/campaign';
-import PortraitModal from './portrait/modal';
+import PortraitModal from './modal';
+
 const React = require('react');
 
 type ParticipantFormProps = {
@@ -20,27 +22,24 @@ type ParticipantFormProps = {
 
 export default function ParticipantForm({ participant, teams, showDelete, onChange, onDelete }: ParticipantFormProps) {
   const [locked, setLocked] = useState(true);
-  const modalRef = useRef(null);
-
-  // @ts-ignore
-  const toggleModal = () => modalRef.current && modalRef.current.toggle();
 
   const toggleLock = () => setLocked(!locked);
+
+  const toggleModal = new Subject<void>();
 
   return (
     <Row>
       <PortraitModal
-        ref={modalRef}
-        onSave={p => onChange({ ...participant, portrait: p })}
         portrait={participant.portrait}
-        disabled={locked} />
+        toggle={toggleModal}
+        onChange={portrait => onChange({ ...participant, portrait: portrait })} />
       <Col xs={3}>
         <img
           src={participant.portrait}
           className='img-thumbnail cursor-pointer'
           alt='Portrait Image'
           title='Click to choose portrait'
-          onClick={toggleModal} />
+          onClick={() => toggleModal.next()} />
       </Col>
       <Col>
         <FormGroup>
